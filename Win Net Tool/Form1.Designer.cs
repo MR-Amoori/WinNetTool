@@ -36,6 +36,7 @@
             this.btnClear = new System.Windows.Forms.Button();
             this.btnResetNetwork = new System.Windows.Forms.Button();
             this.btnInternetOptions = new System.Windows.Forms.Button();
+            this.btnDisableLanSettings = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnIpConfig
@@ -114,6 +115,17 @@
             this.btnInternetOptions.UseVisualStyleBackColor = true;
             this.btnInternetOptions.Click += new System.EventHandler(this.btnInternetOptions_Click);
             // 
+            // btnDisableLanSettings
+            // 
+            this.btnDisableLanSettings.Location = new System.Drawing.Point(555, 58);
+            this.btnDisableLanSettings.Name = "btnDisableLanSettings";
+            this.btnDisableLanSettings.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.btnDisableLanSettings.Size = new System.Drawing.Size(176, 40);
+            this.btnDisableLanSettings.TabIndex = 3;
+            this.btnDisableLanSettings.Text = "حذف لن اینترنت آپشن";
+            this.btnDisableLanSettings.UseVisualStyleBackColor = true;
+            this.btnDisableLanSettings.Click += new System.EventHandler(this.btnDisableLanSettings_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
@@ -122,6 +134,7 @@
             this.Controls.Add(this.btnClear);
             this.Controls.Add(this.rtbOutput);
             this.Controls.Add(this.lblStatus);
+            this.Controls.Add(this.btnDisableLanSettings);
             this.Controls.Add(this.btnInternetOptions);
             this.Controls.Add(this.btnResetNetwork);
             this.Controls.Add(this.btnFlushDns);
@@ -151,6 +164,7 @@
         private System.Windows.Forms.Button btnClear;
         private System.Windows.Forms.Button btnResetNetwork;
         private System.Windows.Forms.Button btnInternetOptions;
+        private System.Windows.Forms.Button btnDisableLanSettings;
     }
 }
 

@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace Win_Net_Tool.Helpers
 {
@@ -54,5 +56,9 @@ namespace Win_Net_Tool.Helpers
                 CommandShell.Cmd);
         }
         #endregion
+
+
+
+
     }
 }
