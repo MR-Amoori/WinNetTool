@@ -3,133 +3,68 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Win_Net_Tool.Helpers;
-using static Win_Net_Tool.Helpers.NetworkActions;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
-using System.Text.RegularExpressions;
 
 namespace Win_Net_Tool
 {
     public partial class Form1 : Form
     {
-        #region Internet Options Off
+        #region Constants
 
-        [DllImport("wininet.dll", SetLastError = true)]
+        private const string OutputSeparator =
+            "\r\n#$# -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- #$#\r\n";
+
+        #endregion
+
+
+        #region Windows Proxy API
+
+        private const int HWND_BROADCAST =
+            0xffff;
+
+        private const uint WM_SETTINGCHANGE =
+            0x001A;
+
+        private const uint SMTO_ABORTIFHUNG =
+            0x0002;
+
+        private const int INTERNET_OPTION_REFRESH =
+            37;
+
+        private const int INTERNET_OPTION_SETTINGS_CHANGED =
+            39;
+
+        [DllImport(
+            "user32.dll",
+            CharSet = CharSet.Unicode)]
+        private static extern IntPtr SendMessageTimeout(
+            IntPtr hWnd,
+            uint msg,
+            UIntPtr wParam,
+            string lParam,
+            uint flags,
+            uint timeout,
+            out UIntPtr result);
+
+        [DllImport(
+            "wininet.dll",
+            SetLastError = true)]
         private static extern bool InternetSetOption(
             IntPtr hInternet,
             int dwOption,
             IntPtr lpBuffer,
             int dwBufferLength);
 
-        private const int INTERNET_OPTION_REFRESH = 37;
-        private const int INTERNET_OPTION_SETTINGS_CHANGED = 39;
-
-        private static void RefreshInternetSettings()
-        {
-            InternetSetOption(
-                IntPtr.Zero,
-                INTERNET_OPTION_SETTINGS_CHANGED,
-                IntPtr.Zero,
-                0);
-
-            InternetSetOption(
-                IntPtr.Zero,
-                INTERNET_OPTION_REFRESH,
-                IntPtr.Zero,
-                0);
-        }
-
-        private static void DisableLanProxySettings()
-        {
-            const string internetSettingsPath =
-                @"Software\Microsoft\Windows\CurrentVersion\Internet Settings";
-
-            using (RegistryKey internetSettings =
-                Registry.CurrentUser.OpenSubKey(
-                    internetSettingsPath,
-                    writable: true))
-            {
-                if (internetSettings == null)
-                {
-                    throw new InvalidOperationException(
-                        "مسیر تنظیمات Internet Options در Registry پیدا نشد.");
-                }
-
-                // خاموش‌کردن Automatically detect settings
-                internetSettings.SetValue(
-                    "AutoDetect",
-                    0,
-                    RegistryValueKind.DWord);
-
-                // خاموش‌کردن Use a proxy server for your LAN
-                internetSettings.SetValue(
-                    "ProxyEnable",
-                    0,
-                    RegistryValueKind.DWord);
-
-                // خاموش‌کردن Use automatic configuration script
-                internetSettings.DeleteValue(
-                    "AutoConfigURL",
-                    false);
-            }
-
-            RefreshInternetSettings();
-        }
-
-        private static void OpenInternetOptionsConnectionsTab()
-        {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = "control.exe",
-                Arguments = "inetcpl.cpl,,4",
-                UseShellExecute = true
-            });
-        }
-
-        private void btnDisableLanSettings_Click(
-            object sender,
-            EventArgs e)
-        {
-            try
-            {
-                DisableLanProxySettings();
-
-                OpenInternetOptionsConnectionsTab();
-
-                rtbOutput.AppendText(
-                    "تنظیمات LAN با موفقیت غیرفعال شدند.\r\n" +
-                    "- Automatically detect settings: خاموش\r\n" +
-                    "- Use automatic configuration script: خاموش\r\n" +
-                    "- Use a proxy server for your LAN: خاموش\r\n" +
-                    "پنجره Internet Options روی تب Connections باز شد.\r\n" +
-                    OutputSeparator);
-
-                rtbOutput.SelectionStart = rtbOutput.TextLength;
-                rtbOutput.ScrollToCaret();
-
-                lblStatus.Text =
-                    "تنظیمات LAN غیرفعال شدند.";
-
-                lblStatus.ForeColor = Color.Green;
-            }
-            catch (Exception ex)
-            {
-                AppendExceptionResult(
-                    "غیرفعال‌کردن تنظیمات LAN",
-                    ex);
-            }
-        }
-
         #endregion
 
-        private const string OutputSeparator =
-            "\r\n#$# -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- #$#\r\n";
+
+        #region Constructor and Form Events
 
         public Form1()
         {
@@ -154,59 +89,215 @@ namespace Win_Net_Tool
             catch (Exception ex)
             {
                 AppendExceptionResult(
-                    "دستور اجراشده: whoami",
+                    "اجرای دستور whoami",
                     ex);
             }
         }
 
-        private void SetControlsEnabled(bool enabled)
+        #endregion
+
+
+        #region Proxy Settings
+
+        /// <summary>
+        /// اعلام تغییر تنظیمات Internet و Refresh کردن WinINet.
+        /// </summary>
+        private static void RefreshInternetSettings()
         {
-            btnIpConfig.Enabled = enabled;
-            btnFlushDns.Enabled = enabled;
-            btnResetNetwork.Enabled = enabled;
+            bool settingsChanged =
+                InternetSetOption(
+                    IntPtr.Zero,
+                    INTERNET_OPTION_SETTINGS_CHANGED,
+                    IntPtr.Zero,
+                    0);
+
+            bool settingsRefreshed =
+                InternetSetOption(
+                    IntPtr.Zero,
+                    INTERNET_OPTION_REFRESH,
+                    IntPtr.Zero,
+                    0);
+
+            SendMessageTimeout(
+                new IntPtr(HWND_BROADCAST),
+                WM_SETTINGCHANGE,
+                UIntPtr.Zero,
+                "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings",
+                SMTO_ABORTIFHUNG,
+                1000,
+                out _);
         }
 
-        private void AppendFinalResetStatus(
-            bool allCommandsSucceeded)
+        /// <summary>
+        /// حذف تنظیمات Proxy مربوط به کاربر فعلی.
+        /// </summary>
+        private static void DeleteCurrentUserProxySettings()
+        {
+            const string internetSettingsPath =
+                @"Software\Microsoft\Windows\CurrentVersion\Internet Settings";
+
+            using (RegistryKey internetSettings =
+                Registry.CurrentUser.OpenSubKey(
+                    internetSettingsPath,
+                    writable: true))
+            {
+                if (internetSettings == null)
+                {
+                    throw new InvalidOperationException(
+                        "کلید تنظیمات Proxy در Registry پیدا نشد.");
+                }
+
+                /*
+                 * Automatically detect settings
+                 */
+                internetSettings.SetValue(
+                    "AutoDetect",
+                    0,
+                    RegistryValueKind.DWord);
+
+                /*
+                 * Use a proxy server
+                 */
+                internetSettings.SetValue(
+                    "ProxyEnable",
+                    0,
+                    RegistryValueKind.DWord);
+
+                /*
+                 * Use setup script
+                 *
+                 * فعال بودن AutoConfigURL باعث فعال‌شدن
+                 * گزینه Use setup script می‌شود.
+                 */
+                internetSettings.DeleteValue(
+                    "AutoConfigURL",
+                    false);
+
+                /*
+                 * Proxy address and port
+                 */
+                internetSettings.DeleteValue(
+                    "ProxyServer",
+                    false);
+
+                /*
+                 * Proxy exceptions
+                 */
+                internetSettings.DeleteValue(
+                    "ProxyOverride",
+                    false);
+            }
+
+            RefreshInternetSettings();
+        }
+
+        /// <summary>
+        /// حذف Proxy مربوط به WinHTTP.
+        /// </summary>
+        private static async Task<CommandExecutionResult>
+            ResetWinHttpProxyAsync()
+        {
+            return await CommandExecutor.ExecuteAsync(
+                "netsh winhttp reset proxy",
+                CommandShell.Cmd);
+        }
+
+        #endregion
+
+
+        #region Open Windows Settings
+
+        /// <summary>
+        /// بازکردن Internet Options معمولی.
+        /// این قابلیت مستقل از حذف Proxy است.
+        /// </summary>
+        private static void OpenInternetOptions()
+        {
+            Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = "control.exe",
+                    Arguments = "inetcpl.cpl",
+                    UseShellExecute = true
+                });
+        }
+
+        /// <summary>
+        /// بازکردن Internet Options روی تب Connections.
+        /// </summary>
+        private static void OpenInternetOptionsConnectionsTab()
+        {
+            Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = "control.exe",
+                    Arguments = "inetcpl.cpl,,4",
+                    UseShellExecute = true
+                });
+        }
+
+        /// <summary>
+        /// بازکردن تنظیمات Proxy در Windows Settings.
+        /// </summary>
+        private static void OpenWindowsProxySettings()
+        {
+            Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = "ms-settings:network-proxy",
+                    UseShellExecute = true
+                });
+        }
+
+        #endregion
+
+
+        #region Controls State
+
+        private void SetControlsEnabled(
+            bool enabled)
+        {
+            btnIpConfig.Enabled =
+                enabled;
+
+            btnFlushDns.Enabled =
+                enabled;
+
+            btnResetNetwork.Enabled =
+                enabled;
+
+            btnSetAllAdaptersDhcp.Enabled =
+                enabled;
+
+            btnInternetOptions.Enabled =
+                enabled;
+
+            btnRemoveSystemProxy.Enabled =
+                enabled;
+        }
+
+        #endregion
+
+
+        #region Logging and Output
+
+        private void AppendLog(
+            string message)
         {
             rtbOutput.AppendText(
-                "نتیجه نهایی عملیات Reset Network:\r\n");
-
-            if (allCommandsSucceeded)
-            {
-                rtbOutput.AppendText(
-                    "تمام دستورات با موفقیت اجرا شدند.\r\n");
-
-                lblStatus.Text =
-                    "ریست شبکه با موفقیت انجام شد. سیستم را Restart کنید.";
-
-                lblStatus.ForeColor = Color.Green;
-            }
-            else
-            {
-                rtbOutput.AppendText(
-                    "برخی دستورات با خطا یا هشدار اجرا شدند.\r\n");
-
-                lblStatus.Text =
-                    "ریست شبکه کامل انجام نشد؛ جزئیات خطا در خروجی نمایش داده شده است.";
-
-                lblStatus.ForeColor = Color.DarkOrange;
-            }
-
-            rtbOutput.AppendText(OutputSeparator);
-
-            rtbOutput.SelectionStart =
-                rtbOutput.TextLength;
-
-            rtbOutput.ScrollToCaret();
+                "[" +
+                DateTime.Now.ToString("HH:mm:ss") +
+                "] " +
+                message +
+                "\r\n");
         }
 
         private void AppendExceptionResult(
-            string commandTitle,
+            string title,
             Exception ex)
         {
             rtbOutput.AppendText(
-                commandTitle +
+                title +
                 "\r\n\r\n" +
                 "خطای غیرمنتظره:\r\n" +
                 ex +
@@ -234,33 +325,40 @@ namespace Win_Net_Tool
             message.AppendLine(commandTitle);
             message.AppendLine();
 
-            if (!string.IsNullOrWhiteSpace(result.Output))
+            if (!string.IsNullOrWhiteSpace(
+                result.Output))
             {
                 message.AppendLine(
                     result.Output.TrimEnd());
             }
 
-            if (!string.IsNullOrWhiteSpace(result.Error))
+            if (!string.IsNullOrWhiteSpace(
+                result.Error))
             {
-                if (!string.IsNullOrWhiteSpace(result.Output))
+                if (!string.IsNullOrWhiteSpace(
+                    result.Output))
                 {
                     message.AppendLine();
                 }
 
-                message.AppendLine("خطای دستور:");
+                message.AppendLine(
+                    "خطای دستور:");
 
                 message.AppendLine(
                     result.Error.TrimEnd());
             }
 
-            if (string.IsNullOrWhiteSpace(result.Output) &&
-                string.IsNullOrWhiteSpace(result.Error))
+            if (string.IsNullOrWhiteSpace(
+                result.Output) &&
+                string.IsNullOrWhiteSpace(
+                result.Error))
             {
                 message.AppendLine(
                     "این دستور خروجی‌ای تولید نکرد.");
             }
 
-            message.Append(OutputSeparator);
+            message.Append(
+                OutputSeparator);
 
             rtbOutput.AppendText(
                 message.ToString());
@@ -284,7 +382,7 @@ namespace Win_Net_Tool
                     "اجرای دستور با خطا یا هشدار مواجه شد.";
 
                 lblStatus.ForeColor =
-                    Color.Red;
+                    Color.DarkOrange;
             }
         }
 
@@ -297,46 +395,237 @@ namespace Win_Net_Tool
                 result);
         }
 
-        #region ShowCommandResult
-
-        /*
-        private void ShowCommandResult(
-            CommandExecutionResult result)
+        private void AppendFinalResetStatus(
+            bool allCommandsSucceeded)
         {
-            if (result.IsSuccess)
+            rtbOutput.AppendText(
+                "نتیجه نهایی عملیات Reset Network:\r\n");
+
+            if (allCommandsSucceeded)
             {
-                rtbOutput.Text =
-                    "خروجی دستور:\n\n" +
-                    result.Output;
+                rtbOutput.AppendText(
+                    "تمام دستورات با موفقیت اجرا شدند.\r\n");
 
                 lblStatus.Text =
-                    "دستور با موفقیت اجرا شد.";
+                    "ریست شبکه با موفقیت انجام شد. سیستم را Restart کنید.";
 
                 lblStatus.ForeColor =
                     Color.Green;
             }
             else
             {
-                rtbOutput.Text =
-                    "خروجی استاندارد:\n" +
-                    (string.IsNullOrWhiteSpace(result.Output)
-                        ? "(بدون خروجی)"
-                        : result.Output) +
-                    "\n\nخطای دستور:\n" +
-                    (string.IsNullOrWhiteSpace(result.Error)
-                        ? "(بدون پیام خطا)"
-                        : result.Error);
+                rtbOutput.AppendText(
+                    "برخی دستورات با خطا یا هشدار اجرا شدند.\r\n");
 
                 lblStatus.Text =
-                    "اجرای دستور با خطا مواجه شد.";
+                    "ریست شبکه کامل انجام نشد.";
 
                 lblStatus.ForeColor =
-                    Color.Red;
+                    Color.DarkOrange;
             }
+
+            rtbOutput.AppendText(
+                OutputSeparator);
+
+            rtbOutput.SelectionStart =
+                rtbOutput.TextLength;
+
+            rtbOutput.ScrollToCaret();
         }
-        */
 
         #endregion
+
+
+        #region Internet Options Button
+
+        /// <summary>
+        /// این دکمه فقط Internet Options را باز می‌کند.
+        /// هیچ تنظیم Proxy را تغییر نمی‌دهد.
+        /// </summary>
+        private void btnInternetOptions_Click(
+            object sender,
+            EventArgs e)
+        {
+            try
+            {
+                OpenInternetOptions();
+
+                AppendLog(
+                    "Internet Options باز شد.");
+
+                lblStatus.Text =
+                    "Internet Options باز شد.";
+
+                lblStatus.ForeColor =
+                    Color.Green;
+            }
+            catch (Exception ex)
+            {
+                AppendExceptionResult(
+                    "باز کردن Internet Options",
+                    ex);
+            }
+        }
+
+        #endregion
+
+
+        #region Remove System Proxy Button
+
+        /// <summary>
+        /// حذف کامل Proxy کاربر فعلی و WinHTTP.
+        /// </summary>
+        private async void btnRemoveSystemProxy_Click(
+            object sender,
+            EventArgs e)
+        {
+            DialogResult confirmation =
+                MessageBox.Show(
+                    "تمام تنظیمات Proxy کاربر فعلی و WinHTTP حذف خواهند شد.\r\n\r\n" +
+                    "موارد زیر تغییر می‌کنند:\r\n" +
+                    "- Automatically detect settings\r\n" +
+                    "- Use setup script\r\n" +
+                    "- Script address\r\n" +
+                    "- Use a proxy server\r\n" +
+                    "- Proxy address and port\r\n" +
+                    "- Proxy exceptions\r\n\r\n" +
+                    "آیا ادامه می‌دهید؟",
+                    "حذف پروکسی سیستم",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+
+            if (confirmation != DialogResult.Yes)
+            {
+                return;
+            }
+
+            btnRemoveSystemProxy.Enabled =
+                false;
+
+            lblStatus.Text =
+                "در حال حذف تنظیمات Proxy...";
+
+            lblStatus.ForeColor =
+                Color.Black;
+
+            try
+            {
+                AppendLog(
+                    "شروع حذف تنظیمات Proxy کاربر فعلی.");
+
+                DeleteCurrentUserProxySettings();
+
+                AppendLog(
+                    "تنظیمات Proxy مربوط به کاربر فعلی حذف شد.");
+
+                CommandExecutionResult winHttpResult =
+                    await ResetWinHttpProxyAsync();
+
+                ShowCommandResult(
+                    "دستور اجراشده: netsh winhttp reset proxy",
+                    winHttpResult);
+
+                rtbOutput.AppendText(
+                    "نتیجه حذف پروکسی سیستم:\r\n" +
+                    "- Automatically detect settings: خاموش شد.\r\n" +
+                    "- Use setup script: خاموش و حذف شد.\r\n" +
+                    "- Script address: حذف شد.\r\n" +
+                    "- Use a proxy server: خاموش شد.\r\n" +
+                    "- Proxy address and port: حذف شد.\r\n" +
+                    "- Proxy exceptions: حذف شد.\r\n");
+
+                if (winHttpResult.IsSuccess)
+                {
+                    rtbOutput.AppendText(
+                        "- WinHTTP Proxy: حذف شد.\r\n");
+
+                    AppendLog(
+                        "WinHTTP Proxy با موفقیت Reset شد.");
+
+                    lblStatus.Text =
+                        "تمام تنظیمات Proxy با موفقیت حذف شدند.";
+
+                    lblStatus.ForeColor =
+                        Color.Green;
+                }
+                else
+                {
+                    rtbOutput.AppendText(
+                        "- WinHTTP Proxy: با خطا مواجه شد.\r\n");
+
+                    AppendLog(
+                        "Reset کردن WinHTTP Proxy با خطا مواجه شد.");
+
+                    lblStatus.Text =
+                        "Proxy کاربر حذف شد؛ WinHTTP با هشدار مواجه شد.";
+
+                    lblStatus.ForeColor =
+                        Color.DarkOrange;
+                }
+
+                rtbOutput.AppendText(
+                    OutputSeparator);
+
+                rtbOutput.SelectionStart =
+                    rtbOutput.TextLength;
+
+                rtbOutput.ScrollToCaret();
+
+                /*
+                 * پس از اتمام عملیات، صفحه Proxy باز می‌شود
+                 * تا نتیجه را مشاهده کنی.
+                 */
+                OpenWindowsProxySettings();
+            }
+            catch (Exception ex)
+            {
+                AppendExceptionResult(
+                    "حذف پروکسی سیستم",
+                    ex);
+            }
+            finally
+            {
+                btnRemoveSystemProxy.Enabled =
+                    true;
+            }
+        }
+
+        /*
+         * اگر این Event در Designer قدیمی هنوز متصل باشد،
+         * برای جلوگیری از خطای Designer این متد باقی می‌ماند.
+         *
+         * این دکمه فقط تب Connections را باز می‌کند
+         * و دیگر عملیات حذف Proxy انجام نمی‌دهد.
+         */
+        private void btnDisableLanSettings_Click(
+            object sender,
+            EventArgs e)
+        {
+            try
+            {
+                OpenInternetOptionsConnectionsTab();
+
+                AppendLog(
+                    "Internet Options روی تب Connections باز شد.");
+
+                lblStatus.Text =
+                    "Internet Options روی تب Connections باز شد.";
+
+                lblStatus.ForeColor =
+                    Color.Green;
+            }
+            catch (Exception ex)
+            {
+                AppendExceptionResult(
+                    "باز کردن تب Connections",
+                    ex);
+            }
+        }
+
+        #endregion
+
+
+        #region IP Configuration
 
         private async void btnIpConfig_Click(
             object sender,
@@ -362,7 +651,7 @@ namespace Win_Net_Tool
             catch (Exception ex)
             {
                 AppendExceptionResult(
-                    "دستور اجراشده: ipconfig",
+                    "اجرای دستور ipconfig",
                     ex);
             }
             finally
@@ -370,6 +659,11 @@ namespace Win_Net_Tool
                 SetControlsEnabled(true);
             }
         }
+
+        #endregion
+
+
+        #region Flush DNS
 
         private async void btnFlushDns_Click(
             object sender,
@@ -395,7 +689,7 @@ namespace Win_Net_Tool
             catch (Exception ex)
             {
                 AppendExceptionResult(
-                    "دستور اجراشده: ipconfig /flushdns",
+                    "اجرای دستور ipconfig /flushdns",
                     ex);
             }
             finally
@@ -403,6 +697,11 @@ namespace Win_Net_Tool
                 SetControlsEnabled(true);
             }
         }
+
+        #endregion
+
+
+        #region Clear Output
 
         private void btnClear_Click(
             object sender,
@@ -417,13 +716,18 @@ namespace Win_Net_Tool
                 Color.Black;
         }
 
+        #endregion
+
+
+        #region Reset Network
+
         private async void btnResetNetwork_Click(
             object sender,
             EventArgs e)
         {
             DialogResult confirmation =
                 MessageBox.Show(
-                    "با اجرای این عملیات ممکن است اتصال شبکه موقتاً قطع شود.\n" +
+                    "با اجرای این عملیات ممکن است اتصال شبکه موقتاً قطع شود.\r\n" +
                     "آیا از ریست تنظیمات شبکه اطمینان دارید؟",
                     "تأیید ریست شبکه",
                     MessageBoxButtons.YesNo,
@@ -514,41 +818,20 @@ namespace Win_Net_Tool
             }
         }
 
-        private void btnInternetOptions_Click(
-            object sender,
-            EventArgs e)
-        {
-            try
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = "control.exe",
-                    Arguments = "inetcpl.cpl",
-                    UseShellExecute = true
-                });
+        #endregion
 
-                lblStatus.Text =
-                    "Internet Options باز شد.";
 
-                lblStatus.ForeColor =
-                    Color.Green;
-            }
-            catch (Exception ex)
-            {
-                AppendExceptionResult(
-                    "باز کردن Internet Options",
-                    ex);
-            }
-        }
+        #region DHCP
 
         private void AppendAdapterDhcpResult(
-    AdapterDhcpResult result)
+            NetworkActions.AdapterDhcpResult result)
         {
             StringBuilder message =
                 new StringBuilder();
 
             message.AppendLine(
-                "آداپتور: " + result.AdapterName);
+                "آداپتور: " +
+                result.AdapterName);
 
             message.AppendLine();
 
@@ -607,7 +890,8 @@ namespace Win_Net_Tool
                     "نتیجه: تنظیم کامل این آداپتور با خطا یا هشدار مواجه شد.");
             }
 
-            message.Append(OutputSeparator);
+            message.Append(
+                OutputSeparator);
 
             rtbOutput.AppendText(
                 message.ToString());
@@ -618,16 +902,18 @@ namespace Win_Net_Tool
             rtbOutput.ScrollToCaret();
         }
 
-        private async void btnSetAllAdaptersDhcp_Click(object sender, EventArgs e)
+        private async void btnSetAllAdaptersDhcp_Click(
+            object sender,
+            EventArgs e)
         {
             DialogResult confirmation =
-       MessageBox.Show(
-           "تنظیمات IPv4 تمام آداپتورهای شبکه روی دریافت خودکار IP و DNS قرار می‌گیرد.\r\n\r\n" +
-           "ممکن است اتصال شبکه موقتاً قطع شود.\r\n" +
-           "آیا ادامه می‌دهید؟",
-           "تنظیم DHCP برای همه آداپتورها",
-           MessageBoxButtons.YesNo,
-           MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    "تنظیمات IPv4 تمام آداپتورهای شبکه روی دریافت خودکار IP و DNS قرار می‌گیرد.\r\n\r\n" +
+                    "ممکن است اتصال شبکه موقتاً قطع شود.\r\n" +
+                    "آیا ادامه می‌دهید؟",
+                    "تنظیم DHCP برای همه آداپتورها",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
 
             if (confirmation != DialogResult.Yes)
             {
@@ -647,7 +933,7 @@ namespace Win_Net_Tool
 
             try
             {
-                List<AdapterDhcpResult> results =
+                List<NetworkActions.AdapterDhcpResult> results =
                     await NetworkActions.SetAllAdaptersToDhcpAsync();
 
                 if (results.Count == 0)
@@ -665,9 +951,12 @@ namespace Win_Net_Tool
                     return;
                 }
 
-                foreach (AdapterDhcpResult result in results)
+                foreach (
+                    NetworkActions.AdapterDhcpResult result
+                    in results)
                 {
-                    AppendAdapterDhcpResult(result);
+                    AppendAdapterDhcpResult(
+                        result);
 
                     if (!result.IsSuccess)
                     {
@@ -693,7 +982,7 @@ namespace Win_Net_Tool
                 else
                 {
                     rtbOutput.AppendText(
-                        "برخی آداپتورها با خطا یا هشدار مواجه شدند. جزئیات در خروجی نمایش داده شده است.\r\n");
+                        "برخی آداپتورها با خطا یا هشدار مواجه شدند.\r\n");
 
                     lblStatus.Text =
                         "تنظیم همه آداپتورها کامل انجام نشد.";
@@ -722,6 +1011,11 @@ namespace Win_Net_Tool
             }
         }
 
+        #endregion
+
+
+        #region Ping Validation
+
         private bool IsValidIPv4Strict(
             string value)
         {
@@ -733,7 +1027,6 @@ namespace Win_Net_Tool
             string[] parts =
                 value.Split('.');
 
-            // IPv4 باید دقیقاً چهار بخش داشته باشد
             if (parts.Length != 4)
             {
                 return false;
@@ -746,7 +1039,6 @@ namespace Win_Net_Tool
                     return false;
                 }
 
-                // فقط عدد قبول می‌شود
                 if (!int.TryParse(
                     part,
                     out int number))
@@ -754,7 +1046,6 @@ namespace Win_Net_Tool
                     return false;
                 }
 
-                // هر بخش باید بین 0 تا 255 باشد
                 if (number < 0 || number > 255)
                 {
                     return false;
@@ -765,21 +1056,18 @@ namespace Win_Net_Tool
         }
 
         private bool IsValidDomain(
-    string value)
+            string value)
         {
             if (string.IsNullOrWhiteSpace(value))
             {
                 return false;
             }
 
-            // دامنه باید طول منطقی داشته باشد
             if (value.Length > 253)
             {
                 return false;
             }
 
-            // دامنه باید حداقل یک نقطه داشته باشد.
-            // بنابراین abc پذیرفته نمی‌شود.
             string[] labels =
                 value.Split('.');
 
@@ -790,17 +1078,12 @@ namespace Win_Net_Tool
 
             foreach (string label in labels)
             {
-                if (string.IsNullOrWhiteSpace(label))
+                if (string.IsNullOrWhiteSpace(label) ||
+                    label.Length > 63)
                 {
                     return false;
                 }
 
-                if (label.Length > 63)
-                {
-                    return false;
-                }
-
-                // هر بخش باید با حرف یا عدد شروع و تمام شود
                 if (!char.IsLetterOrDigit(label[0]) ||
                     !char.IsLetterOrDigit(
                         label[label.Length - 1]))
@@ -808,7 +1091,6 @@ namespace Win_Net_Tool
                     return false;
                 }
 
-                // فقط حروف، اعداد و خط تیره مجاز هستند
                 foreach (char character in label)
                 {
                     if (!char.IsLetterOrDigit(character) &&
@@ -822,8 +1104,6 @@ namespace Win_Net_Tool
             string topLevelDomain =
                 labels[labels.Length - 1];
 
-            // پسوند دامنه حداقل دو حرف داشته باشد
-            // مانند com، ir، org
             if (topLevelDomain.Length < 2)
             {
                 return false;
@@ -842,35 +1122,37 @@ namespace Win_Net_Tool
         }
 
         private bool IsValidPingTarget(
-    string value)
+            string value)
         {
             if (string.IsNullOrWhiteSpace(value))
             {
                 return false;
             }
 
-            value = value.Trim();
+            value =
+                value.Trim();
 
-            // جلوگیری از پذیرش IPv6 مانند ::
             if (value.Contains(":"))
             {
                 return false;
             }
 
-            // اگر IPv4 معتبر باشد، قبول شود
             if (IsValidIPv4Strict(value))
             {
                 return true;
             }
 
-            // در غیر این صورت، به‌عنوان دامنه بررسی شود
             return IsValidDomain(value);
         }
 
+        #endregion
+
+
+        #region Ping
 
         private async void btnPing_Click(
-    object sender,
-    EventArgs e)
+            object sender,
+            EventArgs e)
         {
             string target =
                 txtPingTarget.Text.Trim();
@@ -895,11 +1177,16 @@ namespace Win_Net_Tool
                 return;
             }
 
-            btnPing.Enabled = false;
-            txtPingTarget.Enabled = false;
+            btnPing.Enabled =
+                false;
+
+            txtPingTarget.Enabled =
+                false;
 
             lblPingStatus.Text =
-                "در حال ارسال Ping به " + target + "...";
+                "در حال ارسال Ping به " +
+                target +
+                "...";
 
             lblPingStatus.ForeColor =
                 Color.Black;
@@ -908,7 +1195,8 @@ namespace Win_Net_Tool
                 new StringBuilder();
 
             output.AppendLine(
-                "دستور اجراشده: ping " + target);
+                "دستور اجراشده: ping " +
+                target);
 
             output.AppendLine();
 
@@ -1024,8 +1312,8 @@ namespace Win_Net_Tool
             finally
             {
                 output.AppendLine();
-                output.Append(OutputSeparator);
-                output.AppendLine();
+                output.Append(
+                    OutputSeparator);
 
                 rtbOutput.AppendText(
                     output.ToString());
@@ -1035,12 +1323,14 @@ namespace Win_Net_Tool
 
                 rtbOutput.ScrollToCaret();
 
-                btnPing.Enabled = true;
-                txtPingTarget.Enabled = true;
+                btnPing.Enabled =
+                    true;
+
+                txtPingTarget.Enabled =
+                    true;
             }
         }
 
-
-
+        #endregion
     }
 }

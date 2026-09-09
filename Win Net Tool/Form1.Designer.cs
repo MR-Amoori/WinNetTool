@@ -41,6 +41,7 @@
             this.txtPingTarget = new System.Windows.Forms.TextBox();
             this.btnPing = new System.Windows.Forms.Button();
             this.lblPingStatus = new System.Windows.Forms.Label();
+            this.btnRemoveSystemProxy = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnIpConfig
@@ -171,6 +172,17 @@
             this.lblPingStatus.TabIndex = 12;
             this.lblPingStatus.Text = "00 ms";
             // 
+            // btnRemoveSystemProxy
+            // 
+            this.btnRemoveSystemProxy.Location = new System.Drawing.Point(555, 104);
+            this.btnRemoveSystemProxy.Name = "btnRemoveSystemProxy";
+            this.btnRemoveSystemProxy.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.btnRemoveSystemProxy.Size = new System.Drawing.Size(176, 40);
+            this.btnRemoveSystemProxy.TabIndex = 3;
+            this.btnRemoveSystemProxy.Text = "حذف پروکسی";
+            this.btnRemoveSystemProxy.UseVisualStyleBackColor = true;
+            this.btnRemoveSystemProxy.Click += new System.EventHandler(this.btnRemoveSystemProxy_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
@@ -183,6 +195,7 @@
             this.Controls.Add(this.lblStatus);
             this.Controls.Add(this.btnPing);
             this.Controls.Add(this.btnSetAllAdaptersDhcp);
+            this.Controls.Add(this.btnRemoveSystemProxy);
             this.Controls.Add(this.btnDisableLanSettings);
             this.Controls.Add(this.btnInternetOptions);
             this.Controls.Add(this.btnResetNetwork);
@@ -218,6 +231,7 @@
         private System.Windows.Forms.TextBox txtPingTarget;
         private System.Windows.Forms.Button btnPing;
         private System.Windows.Forms.Label lblPingStatus;
+        private System.Windows.Forms.Button btnRemoveSystemProxy;
     }
 }
 

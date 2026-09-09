@@ -29,3 +29,4 @@
 بازکردن Services
 بازکردن Command Prompt
 Ping Gateway، Ping Internet و بررسی DNS
+ثبت DNS ها و ارجاع از گیت هاب خودم
