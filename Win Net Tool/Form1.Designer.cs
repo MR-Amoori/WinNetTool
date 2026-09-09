@@ -37,6 +37,7 @@
             this.btnResetNetwork = new System.Windows.Forms.Button();
             this.btnInternetOptions = new System.Windows.Forms.Button();
             this.btnDisableLanSettings = new System.Windows.Forms.Button();
+            this.btnSetAllAdaptersDhcp = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnIpConfig
@@ -126,6 +127,17 @@
             this.btnDisableLanSettings.UseVisualStyleBackColor = true;
             this.btnDisableLanSettings.Click += new System.EventHandler(this.btnDisableLanSettings_Click);
             // 
+            // btnSetAllAdaptersDhcp
+            // 
+            this.btnSetAllAdaptersDhcp.Location = new System.Drawing.Point(373, 58);
+            this.btnSetAllAdaptersDhcp.Name = "btnSetAllAdaptersDhcp";
+            this.btnSetAllAdaptersDhcp.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.btnSetAllAdaptersDhcp.Size = new System.Drawing.Size(176, 40);
+            this.btnSetAllAdaptersDhcp.TabIndex = 3;
+            this.btnSetAllAdaptersDhcp.Text = "حذف DNS آداپتور ها";
+            this.btnSetAllAdaptersDhcp.UseVisualStyleBackColor = true;
+            this.btnSetAllAdaptersDhcp.Click += new System.EventHandler(this.btnSetAllAdaptersDhcp_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
@@ -134,6 +146,7 @@
             this.Controls.Add(this.btnClear);
             this.Controls.Add(this.rtbOutput);
             this.Controls.Add(this.lblStatus);
+            this.Controls.Add(this.btnSetAllAdaptersDhcp);
             this.Controls.Add(this.btnDisableLanSettings);
             this.Controls.Add(this.btnInternetOptions);
             this.Controls.Add(this.btnResetNetwork);
@@ -165,6 +178,7 @@
         private System.Windows.Forms.Button btnResetNetwork;
         private System.Windows.Forms.Button btnInternetOptions;
         private System.Windows.Forms.Button btnDisableLanSettings;
+        private System.Windows.Forms.Button btnSetAllAdaptersDhcp;
     }
 }
 

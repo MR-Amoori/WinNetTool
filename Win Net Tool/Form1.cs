@@ -1,12 +1,14 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Microsoft.Win32;
 using Win_Net_Tool.Helpers;
+using static Win_Net_Tool.Helpers.NetworkActions;
 
 namespace Win_Net_Tool
 {
@@ -534,5 +536,188 @@ namespace Win_Net_Tool
                     ex);
             }
         }
+
+        private void AppendAdapterDhcpResult(
+    AdapterDhcpResult result)
+        {
+            StringBuilder message =
+                new StringBuilder();
+
+            message.AppendLine(
+                "آداپتور: " + result.AdapterName);
+
+            message.AppendLine();
+
+            message.AppendLine(
+                "تنظیم دریافت خودکار IP:");
+
+            if (!string.IsNullOrWhiteSpace(
+                result.AddressResult.Output))
+            {
+                message.AppendLine(
+                    result.AddressResult.Output.TrimEnd());
+            }
+
+            if (!string.IsNullOrWhiteSpace(
+                result.AddressResult.Error))
+            {
+                message.AppendLine(
+                    "خطا:");
+
+                message.AppendLine(
+                    result.AddressResult.Error.TrimEnd());
+            }
+
+            message.AppendLine();
+
+            message.AppendLine(
+                "تنظیم دریافت خودکار DNS:");
+
+            if (!string.IsNullOrWhiteSpace(
+                result.DnsResult.Output))
+            {
+                message.AppendLine(
+                    result.DnsResult.Output.TrimEnd());
+            }
+
+            if (!string.IsNullOrWhiteSpace(
+                result.DnsResult.Error))
+            {
+                message.AppendLine(
+                    "خطا:");
+
+                message.AppendLine(
+                    result.DnsResult.Error.TrimEnd());
+            }
+
+            message.AppendLine();
+
+            if (result.IsSuccess)
+            {
+                message.AppendLine(
+                    "نتیجه: تنظیمات IP و DNS این آداپتور روی DHCP قرار گرفت.");
+            }
+            else
+            {
+                message.AppendLine(
+                    "نتیجه: تنظیم کامل این آداپتور با خطا یا هشدار مواجه شد.");
+            }
+
+            message.Append(OutputSeparator);
+
+            rtbOutput.AppendText(
+                message.ToString());
+
+            rtbOutput.SelectionStart =
+                rtbOutput.TextLength;
+
+            rtbOutput.ScrollToCaret();
+        }
+
+        private async void btnSetAllAdaptersDhcp_Click(object sender, EventArgs e)
+        {
+            DialogResult confirmation =
+       MessageBox.Show(
+           "تنظیمات IPv4 تمام آداپتورهای شبکه روی دریافت خودکار IP و DNS قرار می‌گیرد.\r\n\r\n" +
+           "ممکن است اتصال شبکه موقتاً قطع شود.\r\n" +
+           "آیا ادامه می‌دهید؟",
+           "تنظیم DHCP برای همه آداپتورها",
+           MessageBoxButtons.YesNo,
+           MessageBoxIcon.Warning);
+
+            if (confirmation != DialogResult.Yes)
+            {
+                return;
+            }
+
+            SetControlsEnabled(false);
+
+            lblStatus.Text =
+                "در حال تنظیم خودکار IP و DNS تمام آداپتورها...";
+
+            lblStatus.ForeColor =
+                Color.Black;
+
+            bool allAdaptersSucceeded =
+                true;
+
+            try
+            {
+                List<AdapterDhcpResult> results =
+                    await NetworkActions.SetAllAdaptersToDhcpAsync();
+
+                if (results.Count == 0)
+                {
+                    rtbOutput.AppendText(
+                        "هیچ آداپتور قابل تنظیمی پیدا نشد.\r\n" +
+                        OutputSeparator);
+
+                    lblStatus.Text =
+                        "آداپتور قابل تنظیمی پیدا نشد.";
+
+                    lblStatus.ForeColor =
+                        Color.DarkOrange;
+
+                    return;
+                }
+
+                foreach (AdapterDhcpResult result in results)
+                {
+                    AppendAdapterDhcpResult(result);
+
+                    if (!result.IsSuccess)
+                    {
+                        allAdaptersSucceeded =
+                            false;
+                    }
+                }
+
+                rtbOutput.AppendText(
+                    "نتیجه نهایی تنظیم DHCP:\r\n");
+
+                if (allAdaptersSucceeded)
+                {
+                    rtbOutput.AppendText(
+                        "تنظیم IP و DNS تمام آداپتورها با موفقیت روی حالت خودکار قرار گرفت.\r\n");
+
+                    lblStatus.Text =
+                        "IP و DNS تمام آداپتورها خودکار شدند.";
+
+                    lblStatus.ForeColor =
+                        Color.Green;
+                }
+                else
+                {
+                    rtbOutput.AppendText(
+                        "برخی آداپتورها با خطا یا هشدار مواجه شدند. جزئیات در خروجی نمایش داده شده است.\r\n");
+
+                    lblStatus.Text =
+                        "تنظیم همه آداپتورها کامل انجام نشد.";
+
+                    lblStatus.ForeColor =
+                        Color.DarkOrange;
+                }
+
+                rtbOutput.AppendText(
+                    OutputSeparator);
+
+                rtbOutput.SelectionStart =
+                    rtbOutput.TextLength;
+
+                rtbOutput.ScrollToCaret();
+            }
+            catch (Exception ex)
+            {
+                AppendExceptionResult(
+                    "تنظیم DHCP برای تمام آداپتورها",
+                    ex);
+            }
+            finally
+            {
+                SetControlsEnabled(true);
+            }
+        }
+
+
     }
 }

@@ -28,3 +28,4 @@
 بازکردن Device Manager
 بازکردن Services
 بازکردن Command Prompt
+Ping Gateway، Ping Internet و بررسی DNS
