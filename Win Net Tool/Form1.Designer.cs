@@ -34,14 +34,16 @@
             this.rtbOutput = new System.Windows.Forms.RichTextBox();
             this.btnFlushDns = new System.Windows.Forms.Button();
             this.btnClear = new System.Windows.Forms.Button();
+            this.btnResetNetwork = new System.Windows.Forms.Button();
+            this.btnsdsd = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnIpConfig
             // 
-            this.btnIpConfig.Location = new System.Drawing.Point(12, 21);
+            this.btnIpConfig.Location = new System.Drawing.Point(9, 12);
             this.btnIpConfig.Name = "btnIpConfig";
             this.btnIpConfig.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.btnIpConfig.Size = new System.Drawing.Size(234, 40);
+            this.btnIpConfig.Size = new System.Drawing.Size(176, 40);
             this.btnIpConfig.TabIndex = 0;
             this.btnIpConfig.Text = "دریافت اطلاعات IP";
             this.btnIpConfig.UseVisualStyleBackColor = true;
@@ -51,7 +53,7 @@
             // 
             this.lblStatus.AutoSize = true;
             this.lblStatus.ForeColor = System.Drawing.Color.DarkOrange;
-            this.lblStatus.Location = new System.Drawing.Point(9, 113);
+            this.lblStatus.Location = new System.Drawing.Point(6, 250);
             this.lblStatus.Name = "lblStatus";
             this.lblStatus.Size = new System.Drawing.Size(60, 18);
             this.lblStatus.TabIndex = 1;
@@ -61,19 +63,19 @@
             // 
             this.rtbOutput.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.rtbOutput.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.rtbOutput.Location = new System.Drawing.Point(0, 134);
+            this.rtbOutput.Location = new System.Drawing.Point(0, 271);
             this.rtbOutput.Name = "rtbOutput";
             this.rtbOutput.ReadOnly = true;
-            this.rtbOutput.Size = new System.Drawing.Size(903, 455);
+            this.rtbOutput.Size = new System.Drawing.Size(733, 383);
             this.rtbOutput.TabIndex = 2;
             this.rtbOutput.Text = "";
             // 
             // btnFlushDns
             // 
-            this.btnFlushDns.Location = new System.Drawing.Point(252, 21);
+            this.btnFlushDns.Location = new System.Drawing.Point(191, 12);
             this.btnFlushDns.Name = "btnFlushDns";
             this.btnFlushDns.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.btnFlushDns.Size = new System.Drawing.Size(234, 40);
+            this.btnFlushDns.Size = new System.Drawing.Size(176, 40);
             this.btnFlushDns.TabIndex = 1;
             this.btnFlushDns.Text = "پاک‌سازی DNS Cache";
             this.btnFlushDns.UseVisualStyleBackColor = true;
@@ -82,7 +84,7 @@
             // btnClear
             // 
             this.btnClear.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnClear.Location = new System.Drawing.Point(828, 112);
+            this.btnClear.Location = new System.Drawing.Point(658, 250);
             this.btnClear.Name = "btnClear";
             this.btnClear.Size = new System.Drawing.Size(75, 23);
             this.btnClear.TabIndex = 10;
@@ -90,14 +92,38 @@
             this.btnClear.UseVisualStyleBackColor = true;
             this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
             // 
+            // btnResetNetwork
+            // 
+            this.btnResetNetwork.Location = new System.Drawing.Point(373, 12);
+            this.btnResetNetwork.Name = "btnResetNetwork";
+            this.btnResetNetwork.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.btnResetNetwork.Size = new System.Drawing.Size(176, 40);
+            this.btnResetNetwork.TabIndex = 2;
+            this.btnResetNetwork.Text = "ریست شبکه";
+            this.btnResetNetwork.UseVisualStyleBackColor = true;
+            this.btnResetNetwork.Click += new System.EventHandler(this.btnResetNetwork_Click);
+            // 
+            // btnsdsd
+            // 
+            this.btnsdsd.Location = new System.Drawing.Point(555, 12);
+            this.btnsdsd.Name = "btnsdsd";
+            this.btnsdsd.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.btnsdsd.Size = new System.Drawing.Size(176, 40);
+            this.btnsdsd.TabIndex = 3;
+            this.btnsdsd.Text = "پاک‌سازی DNS Cache";
+            this.btnsdsd.UseVisualStyleBackColor = true;
+            this.btnsdsd.Click += new System.EventHandler(this.btnFlushDns_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(903, 589);
+            this.ClientSize = new System.Drawing.Size(733, 654);
             this.Controls.Add(this.btnClear);
             this.Controls.Add(this.rtbOutput);
             this.Controls.Add(this.lblStatus);
+            this.Controls.Add(this.btnsdsd);
+            this.Controls.Add(this.btnResetNetwork);
             this.Controls.Add(this.btnFlushDns);
             this.Controls.Add(this.btnIpConfig);
             this.Font = new System.Drawing.Font("Tahoma", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -123,6 +149,8 @@
         private System.Windows.Forms.RichTextBox rtbOutput;
         private System.Windows.Forms.Button btnFlushDns;
         private System.Windows.Forms.Button btnClear;
+        private System.Windows.Forms.Button btnResetNetwork;
+        private System.Windows.Forms.Button btnsdsd;
     }
 }
 
