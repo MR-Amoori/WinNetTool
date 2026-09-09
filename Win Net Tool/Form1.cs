@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Win_Net_Tool.Helpers;
-using System.Text;
 
 namespace Win_Net_Tool
 {
@@ -324,6 +325,28 @@ namespace Win_Net_Tool
             finally
             {
                 SetControlsEnabled(true);
+            }
+        }
+
+        private void btnInternetOptions_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "control.exe",
+                    Arguments = "inetcpl.cpl",
+                    UseShellExecute = true
+                });
+
+                lblStatus.Text = "Internet Options باز شد.";
+                lblStatus.ForeColor = Color.Green;
+            }
+            catch (Exception ex)
+            {
+                AppendExceptionResult(
+                    "باز کردن Internet Options",
+                    ex);
             }
         }
 

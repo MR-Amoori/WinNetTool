@@ -35,7 +35,7 @@
             this.btnFlushDns = new System.Windows.Forms.Button();
             this.btnClear = new System.Windows.Forms.Button();
             this.btnResetNetwork = new System.Windows.Forms.Button();
-            this.btnsdsd = new System.Windows.Forms.Button();
+            this.btnInternetOptions = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnIpConfig
@@ -103,16 +103,16 @@
             this.btnResetNetwork.UseVisualStyleBackColor = true;
             this.btnResetNetwork.Click += new System.EventHandler(this.btnResetNetwork_Click);
             // 
-            // btnsdsd
+            // btnInternetOptions
             // 
-            this.btnsdsd.Location = new System.Drawing.Point(555, 12);
-            this.btnsdsd.Name = "btnsdsd";
-            this.btnsdsd.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.btnsdsd.Size = new System.Drawing.Size(176, 40);
-            this.btnsdsd.TabIndex = 3;
-            this.btnsdsd.Text = "پاک‌سازی DNS Cache";
-            this.btnsdsd.UseVisualStyleBackColor = true;
-            this.btnsdsd.Click += new System.EventHandler(this.btnFlushDns_Click);
+            this.btnInternetOptions.Location = new System.Drawing.Point(555, 12);
+            this.btnInternetOptions.Name = "btnInternetOptions";
+            this.btnInternetOptions.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.btnInternetOptions.Size = new System.Drawing.Size(176, 40);
+            this.btnInternetOptions.TabIndex = 3;
+            this.btnInternetOptions.Text = "اینترنت آپشن";
+            this.btnInternetOptions.UseVisualStyleBackColor = true;
+            this.btnInternetOptions.Click += new System.EventHandler(this.btnInternetOptions_Click);
             // 
             // Form1
             // 
@@ -122,7 +122,7 @@
             this.Controls.Add(this.btnClear);
             this.Controls.Add(this.rtbOutput);
             this.Controls.Add(this.lblStatus);
-            this.Controls.Add(this.btnsdsd);
+            this.Controls.Add(this.btnInternetOptions);
             this.Controls.Add(this.btnResetNetwork);
             this.Controls.Add(this.btnFlushDns);
             this.Controls.Add(this.btnIpConfig);
@@ -150,7 +150,7 @@
         private System.Windows.Forms.Button btnFlushDns;
         private System.Windows.Forms.Button btnClear;
         private System.Windows.Forms.Button btnResetNetwork;
-        private System.Windows.Forms.Button btnsdsd;
+        private System.Windows.Forms.Button btnInternetOptions;
     }
 }
 
