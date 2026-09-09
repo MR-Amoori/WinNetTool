@@ -21,7 +21,7 @@ namespace Win_Net_Tool
         #region Constants
 
         private const string OutputSeparator =
-            "\r\n#$# -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- #$#\r\n";
+            "\r\n#$# -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- #$#\r\n";
 
         #endregion
 
@@ -1641,12 +1641,11 @@ namespace Win_Net_Tool
                 new StringBuilder();
 
             log.AppendLine(
-                "نتیجه Ping و مرتب‌سازی DNS Serverها:");
+                "نتیجه تست Ping DNS Serverها:");
 
             log.AppendLine();
 
-            int index =
-                1;
+            int index = 1;
 
             foreach (
                 NetworkActions.DnsServerInfo dns
@@ -1679,9 +1678,12 @@ namespace Win_Net_Tool
         private string GetDnsSortPingText(
             NetworkActions.DnsServerInfo dns)
         {
-            if (double.IsPositiveInfinity(
-                dns.SortPingMilliseconds) ||
-                dns.SortPingMilliseconds ==
+            if (dns == null)
+            {
+                return "بدون پاسخ";
+            }
+
+            if (dns.SortPingMilliseconds ==
                 double.MaxValue)
             {
                 return "بدون پاسخ";
@@ -2346,8 +2348,69 @@ namespace Win_Net_Tool
                 cmbDnsServers_DrawItem;
         }
 
+
+        #endregion
+
+       
+        #region Open Change Adapter Settings
+
+        private void btnChangeAdapterSettings_Click(
+            object sender,
+            EventArgs e)
+        {
+            try
+            {
+                Process.Start(
+                    new ProcessStartInfo
+                    {
+                        FileName = "ncpa.cpl",
+                        UseShellExecute = true
+                    });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "امکان بازکردن تنظیمات کارت شبکه وجود ندارد." +
+                    Environment.NewLine +
+                    Environment.NewLine +
+                    ex.Message,
+                    "خطا",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
         #endregion
 
 
+        #region Open Developer Website
+
+        private void btnDeveloperWebsite_Click(
+            object sender,
+            EventArgs e)
+        {
+            try
+            {
+                Process.Start(
+                    new ProcessStartInfo
+                    {
+                        FileName = "https://mramoori.ir",
+                        UseShellExecute = true
+                    });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "امکان بازکردن سایت برنامه‌نویس وجود ندارد." +
+                    Environment.NewLine +
+                    Environment.NewLine +
+                    ex.Message,
+                    "خطا",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+        #endregion
     }
 }

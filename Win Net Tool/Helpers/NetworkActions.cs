@@ -291,6 +291,8 @@ namespace Win_Net_Tool.Helpers
         /// <summary>
         /// نتیجه Ping یک IP مربوط به DNS.
         /// </summary>
+        #region DNS Ping Result
+
         public sealed class DnsPingResult
         {
             public string Address { get; set; }
@@ -305,15 +307,19 @@ namespace Win_Net_Tool.Helpers
             {
                 get
                 {
-                    return PingMilliseconds.HasValue &&
-                           Status == IPStatus.Success;
+                    return Status == IPStatus.Success &&
+                           PingMilliseconds.HasValue;
                 }
             }
         }
 
+        #endregion
+
         /// <summary>
         /// ارسال Ping به یک IP با Timeout مشخص.
         /// </summary>
+        #region DNS Ping
+
         private static async Task<DnsPingResult>
             PingDnsAddressAsync(
                 string address,
@@ -323,13 +329,14 @@ namespace Win_Net_Tool.Helpers
                 new DnsPingResult
                 {
                     Address = address,
-                    Status = IPStatus.Unknown
+                    Status = IPStatus.Unknown,
+                    PingMilliseconds = null
                 };
 
             if (string.IsNullOrWhiteSpace(address))
             {
                 result.ErrorMessage =
-                    "آدرس DNS خالی است.";
+                    "آدرس خالی است.";
 
                 return result;
             }
@@ -340,7 +347,7 @@ namespace Win_Net_Tool.Helpers
                 {
                     PingReply reply =
                         await ping.SendPingAsync(
-                            address,
+                            address.Trim(),
                             timeoutMilliseconds);
 
                     result.Status =
@@ -348,19 +355,27 @@ namespace Win_Net_Tool.Helpers
 
                     if (reply.Status == IPStatus.Success)
                     {
+                        /*
+                         * زمان واقعی پاسخ برحسب میلی‌ثانیه
+                         */
                         result.PingMilliseconds =
                             reply.RoundtripTime;
                     }
                     else
                     {
+                        result.PingMilliseconds =
+                            null;
+
                         result.ErrorMessage =
-                            "وضعیت Ping: " +
-                            reply.Status;
+                            reply.Status.ToString();
                     }
                 }
             }
             catch (Exception ex)
             {
+                result.PingMilliseconds =
+                    null;
+
                 result.Status =
                     IPStatus.Unknown;
 
@@ -371,60 +386,74 @@ namespace Win_Net_Tool.Helpers
             return result;
         }
 
+        #endregion
+
         /// <summary>
         /// تست هم‌زمان DNS اولیه و ثانویه یک سرویس.
         /// </summary>
+        #region Ping One DNS Server
+
         private static async Task<DnsServerInfo>
             PingDnsServerAsync(
                 DnsServerInfo dnsServer,
                 int timeoutMilliseconds)
         {
-            Task<DnsPingResult> primaryTask =
-                PingDnsAddressAsync(
+            /*
+             * مقادیر قبلی پاک می‌شوند تا نتیجه تست جدید
+             * با اطلاعات قبلی مخلوط نشود.
+             */
+            dnsServer.PrimaryPingMilliseconds =
+                null;
+
+            dnsServer.SecondaryPingMilliseconds =
+                null;
+
+            /*
+             * ابتدا DNS اولیه تست می‌شود.
+             */
+            DnsPingResult primaryResult =
+                await PingDnsAddressAsync(
                     dnsServer.PrimaryAddress,
                     timeoutMilliseconds);
 
-            Task<DnsPingResult> secondaryTask =
-                string.IsNullOrWhiteSpace(
-                    dnsServer.SecondaryAddress)
-                    ? Task.FromResult<DnsPingResult>(null)
-                    : PingDnsAddressAsync(
+            if (primaryResult.IsSuccess)
+            {
+                dnsServer.PrimaryPingMilliseconds =
+                    primaryResult.PingMilliseconds;
+            }
+
+            /*
+             * بعد از پایان DNS اولیه، DNS ثانویه تست می‌شود.
+             */
+            if (!string.IsNullOrWhiteSpace(
+                dnsServer.SecondaryAddress))
+            {
+                DnsPingResult secondaryResult =
+                    await PingDnsAddressAsync(
                         dnsServer.SecondaryAddress,
                         timeoutMilliseconds);
 
-            DnsPingResult[] results =
-                await Task.WhenAll(
-                    primaryTask,
-                    secondaryTask);
-
-            DnsPingResult primaryResult =
-                results[0];
-
-            DnsPingResult secondaryResult =
-                results[1];
-
-            dnsServer.PrimaryPingMilliseconds =
-                primaryResult != null &&
-                primaryResult.IsSuccess
-                    ? primaryResult.PingMilliseconds
-                    : null;
-
-            dnsServer.SecondaryPingMilliseconds =
-                secondaryResult != null &&
-                secondaryResult.IsSuccess
-                    ? secondaryResult.PingMilliseconds
-                    : null;
+                if (secondaryResult.IsSuccess)
+                {
+                    dnsServer.SecondaryPingMilliseconds =
+                        secondaryResult.PingMilliseconds;
+                }
+            }
 
             return dnsServer;
         }
 
+        #endregion
+
         /// <summary>
         /// تست Ping تمام DNSهای موجود در لیست.
         /// </summary>
+        #region Ping All DNS Servers Sequentially
+
         public static async Task<List<DnsServerInfo>>
             PingAllDnsServersAsync(
                 List<DnsServerInfo> dnsServers,
-                int timeoutMilliseconds = 3000)
+                int timeoutMilliseconds = 1500)
         {
             if (dnsServers == null)
             {
@@ -432,43 +461,42 @@ namespace Win_Net_Tool.Helpers
                     nameof(dnsServers));
             }
 
-            List<Task<DnsServerInfo>> pingTasks =
-                new List<Task<DnsServerInfo>>();
-
-            foreach (DnsServerInfo dnsServer in dnsServers)
-            {
-                pingTasks.Add(
-                    PingDnsServerAsync(
-                        dnsServer,
-                        timeoutMilliseconds));
-            }
-
-            DnsServerInfo[] pingResults =
-                await Task.WhenAll(
-                    pingTasks);
-
-            List<DnsServerInfo> sortedResults =
-                new List<DnsServerInfo>(
-                    pingResults);
+            List<DnsServerInfo> pingResults =
+                new List<DnsServerInfo>();
 
             /*
-             * DNSهایی که پاسخ داده‌اند، براساس میانگین Ping
-             * از کمترین به بیشترین مرتب می‌شوند.
-             *
-             * DNSهایی که هیچ پاسخی نداده‌اند،
-             * به دلیل double.MaxValue در انتهای لیست قرار می‌گیرند.
+             * DNSها عمداً یکی‌یکی تست می‌شوند.
              */
-            sortedResults.Sort(
-                delegate (
-                    DnsServerInfo first,
-                    DnsServerInfo second)
-                {
-                    return first.SortPingMilliseconds.CompareTo(
-                        second.SortPingMilliseconds);
-                });
+            foreach (DnsServerInfo dnsServer in dnsServers)
+            {
+                DnsServerInfo result =
+                    await PingDnsServerAsync(
+                        dnsServer,
+                        timeoutMilliseconds);
 
-            return sortedResults;
+                pingResults.Add(
+                    result);
+            }
+
+            /*
+             * DNSهایی که حداقل یک Ping موفق دارند
+             * براساس کمترین امتیاز مرتب می‌شوند.
+             *
+             * DNSهایی که هیچ پاسخی نداده‌اند
+             * در انتهای لیست قرار می‌گیرند.
+             */
+            pingResults = pingResults
+                .OrderBy(
+                    dns => dns.SortPingMilliseconds ==
+                           double.MaxValue)
+                .ThenBy(
+                    dns => dns.SortPingMilliseconds)
+                .ToList();
+
+            return pingResults;
         }
+
+        #endregion
 
         #endregion
 
