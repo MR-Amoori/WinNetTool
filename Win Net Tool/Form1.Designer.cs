@@ -32,6 +32,8 @@
             this.btnIpConfig = new System.Windows.Forms.Button();
             this.lblStatus = new System.Windows.Forms.Label();
             this.rtbOutput = new System.Windows.Forms.RichTextBox();
+            this.btnFlushDns = new System.Windows.Forms.Button();
+            this.btnClear = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnIpConfig
@@ -66,13 +68,37 @@
             this.rtbOutput.TabIndex = 2;
             this.rtbOutput.Text = "";
             // 
+            // btnFlushDns
+            // 
+            this.btnFlushDns.Location = new System.Drawing.Point(252, 21);
+            this.btnFlushDns.Name = "btnFlushDns";
+            this.btnFlushDns.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.btnFlushDns.Size = new System.Drawing.Size(234, 40);
+            this.btnFlushDns.TabIndex = 1;
+            this.btnFlushDns.Text = "پاک‌سازی DNS Cache";
+            this.btnFlushDns.UseVisualStyleBackColor = true;
+            this.btnFlushDns.Click += new System.EventHandler(this.btnFlushDns_Click);
+            // 
+            // btnClear
+            // 
+            this.btnClear.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnClear.Location = new System.Drawing.Point(828, 112);
+            this.btnClear.Name = "btnClear";
+            this.btnClear.Size = new System.Drawing.Size(75, 23);
+            this.btnClear.TabIndex = 10;
+            this.btnClear.Text = "پاکسازی";
+            this.btnClear.UseVisualStyleBackColor = true;
+            this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(903, 589);
+            this.Controls.Add(this.btnClear);
             this.Controls.Add(this.rtbOutput);
             this.Controls.Add(this.lblStatus);
+            this.Controls.Add(this.btnFlushDns);
             this.Controls.Add(this.btnIpConfig);
             this.Font = new System.Drawing.Font("Tahoma", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -95,6 +121,8 @@
         private System.Windows.Forms.Button btnIpConfig;
         private System.Windows.Forms.Label lblStatus;
         private System.Windows.Forms.RichTextBox rtbOutput;
+        private System.Windows.Forms.Button btnFlushDns;
+        private System.Windows.Forms.Button btnClear;
     }
 }
 

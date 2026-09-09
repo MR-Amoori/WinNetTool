@@ -75,6 +75,7 @@ namespace Win_Net_Tool
         private void SetControlsEnabled(bool enabled)
         {
             btnIpConfig.Enabled = enabled;
+            btnFlushDns.Enabled = enabled;
         }
 
         private void ShowCommandResult(CommandExecutionResult result)
@@ -93,5 +94,37 @@ namespace Win_Net_Tool
             }
         }
 
+        private async void btnFlushDns_Click(object sender, EventArgs e)
+        {
+            SetControlsEnabled(false);
+
+            rtbOutput.Clear();
+            lblStatus.Text = "در حال پاک‌سازی DNS Cache...";
+            lblStatus.ForeColor = Color.Black;
+
+            try
+            {
+                CommandExecutionResult result =
+                    await NetworkActions.FlushDnsCacheAsync();
+
+                ShowCommandResult(result);
+            }
+            catch (Exception ex)
+            {
+                rtbOutput.Text = ex.ToString();
+                lblStatus.Text = "خطای غیرمنتظره";
+                lblStatus.ForeColor = Color.Red;
+            }
+            finally
+            {
+                SetControlsEnabled(true);
+            }
+        }
+
+        private async void btnClear_Click(object sender, EventArgs e)
+        {
+            await NetworkActions.ClearCommands();
+            rtbOutput.Text = "";
+        }
     }
 }
