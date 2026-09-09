@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Win_Net_Tool.Helpers;
 
 namespace Win_Net_Tool
 {
@@ -16,6 +17,18 @@ namespace Win_Net_Tool
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            if (!AdministratorHelper.IsRunningAsAdministrator())
+            {
+                MessageBox.Show(
+                    "برنامه باید با دسترسی Administrator اجرا شود.",
+                    "سطح دسترسی ناکافی",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                return;
+            }
+
             Application.Run(new Form1());
         }
     }
