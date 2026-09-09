@@ -38,6 +38,9 @@
             this.btnInternetOptions = new System.Windows.Forms.Button();
             this.btnDisableLanSettings = new System.Windows.Forms.Button();
             this.btnSetAllAdaptersDhcp = new System.Windows.Forms.Button();
+            this.txtPingTarget = new System.Windows.Forms.TextBox();
+            this.btnPing = new System.Windows.Forms.Button();
+            this.lblPingStatus = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // btnIpConfig
@@ -138,14 +141,47 @@
             this.btnSetAllAdaptersDhcp.UseVisualStyleBackColor = true;
             this.btnSetAllAdaptersDhcp.Click += new System.EventHandler(this.btnSetAllAdaptersDhcp_Click);
             // 
+            // txtPingTarget
+            // 
+            this.txtPingTarget.Location = new System.Drawing.Point(12, 58);
+            this.txtPingTarget.Name = "txtPingTarget";
+            this.txtPingTarget.Size = new System.Drawing.Size(173, 26);
+            this.txtPingTarget.TabIndex = 11;
+            this.txtPingTarget.Text = "8.8.8.8";
+            this.txtPingTarget.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // btnPing
+            // 
+            this.btnPing.Location = new System.Drawing.Point(191, 58);
+            this.btnPing.Name = "btnPing";
+            this.btnPing.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.btnPing.Size = new System.Drawing.Size(176, 40);
+            this.btnPing.TabIndex = 3;
+            this.btnPing.Text = "Ping";
+            this.btnPing.UseVisualStyleBackColor = true;
+            this.btnPing.Click += new System.EventHandler(this.btnPing_Click);
+            // 
+            // lblPingStatus
+            // 
+            this.lblPingStatus.AutoSize = true;
+            this.lblPingStatus.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblPingStatus.Location = new System.Drawing.Point(12, 84);
+            this.lblPingStatus.Name = "lblPingStatus";
+            this.lblPingStatus.Size = new System.Drawing.Size(40, 14);
+            this.lblPingStatus.TabIndex = 12;
+            this.lblPingStatus.Text = "00 ms";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(733, 654);
+            this.Controls.Add(this.lblPingStatus);
+            this.Controls.Add(this.txtPingTarget);
             this.Controls.Add(this.btnClear);
             this.Controls.Add(this.rtbOutput);
             this.Controls.Add(this.lblStatus);
+            this.Controls.Add(this.btnPing);
             this.Controls.Add(this.btnSetAllAdaptersDhcp);
             this.Controls.Add(this.btnDisableLanSettings);
             this.Controls.Add(this.btnInternetOptions);
@@ -179,6 +215,9 @@
         private System.Windows.Forms.Button btnInternetOptions;
         private System.Windows.Forms.Button btnDisableLanSettings;
         private System.Windows.Forms.Button btnSetAllAdaptersDhcp;
+        private System.Windows.Forms.TextBox txtPingTarget;
+        private System.Windows.Forms.Button btnPing;
+        private System.Windows.Forms.Label lblPingStatus;
     }
 }
 

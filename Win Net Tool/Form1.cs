@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Win_Net_Tool.Helpers;
 using static Win_Net_Tool.Helpers.NetworkActions;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 
 namespace Win_Net_Tool
 {
@@ -718,6 +721,174 @@ namespace Win_Net_Tool
             }
         }
 
+        private bool IsValidIPv4(
+    string value,
+    out IPAddress ipAddress)
+        {
+            ipAddress = null;
 
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            if (!IPAddress.TryParse(
+                value.Trim(),
+                out IPAddress parsedAddress))
+            {
+                return false;
+            }
+
+            if (parsedAddress.AddressFamily !=
+                AddressFamily.InterNetwork)
+            {
+                return false;
+            }
+
+            ipAddress = parsedAddress;
+
+            return true;
+        }
+
+        private async void btnPing_Click(object sender, EventArgs e)
+        {
+            string target =
+        txtPingTarget.Text.Trim();
+
+            if (!IsValidIPv4(
+                target,
+                out IPAddress ipAddress))
+            {
+                MessageBox.Show(
+                    "لطفاً یک آدرس IPv4 معتبر مانند 8.8.8.8 وارد کنید.",
+                    "آدرس نامعتبر",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                txtPingTarget.Focus();
+                txtPingTarget.SelectAll();
+
+                return;
+            }
+
+            btnPing.Enabled = false;
+            txtPingTarget.Enabled = false;
+
+            lblPingStatus.Text =
+                "در حال ارسال Ping به " + ipAddress + "...";
+
+            lblPingStatus.ForeColor =
+                Color.Black;
+
+            StringBuilder output =
+                new StringBuilder();
+
+            output.AppendLine(
+                "دستور اجراشده: ping " + ipAddress);
+
+            output.AppendLine();
+
+            try
+            {
+                using (Ping ping = new Ping())
+                {
+                    PingReply reply =
+                        await ping.SendPingAsync(
+                            ipAddress,
+                            4000);
+
+                    if (reply.Status ==
+                        IPStatus.Success)
+                    {
+                        output.AppendLine(
+                            "پاسخ دریافت شد.");
+
+                        output.AppendLine(
+                            "آدرس مقصد: " +
+                            reply.Address);
+
+                        output.AppendLine(
+                            "زمان پاسخ: " +
+                            reply.RoundtripTime +
+                            " ms");
+
+                        output.AppendLine(
+                            "وضعیت: اتصال شبکه برقرار است.");
+
+                        lblPingStatus.Text =
+                            "اتصال برقرار است - " +
+                            reply.RoundtripTime +
+                            " ms";
+
+                        lblPingStatus.ForeColor =
+                            Color.Green;
+                    }
+                    else
+                    {
+                        output.AppendLine(
+                            "پاسخی از مقصد دریافت نشد.");
+
+                        output.AppendLine(
+                            "وضعیت Ping: " +
+                            reply.Status);
+
+                        output.AppendLine(
+                            "ممکن است مقصد، فایروال یا شبکه پاسخ ICMP را مسدود کرده باشد.");
+
+                        lblPingStatus.Text =
+                            "پاسخی دریافت نشد: " +
+                            reply.Status;
+
+                        lblPingStatus.ForeColor =
+                            Color.DarkOrange;
+                    }
+                }
+            }
+            catch (PingException ex)
+            {
+                output.AppendLine(
+                    "خطا در اجرای Ping:");
+
+                output.AppendLine(
+                    ex.Message);
+
+                lblPingStatus.Text =
+                    "خطا در اجرای Ping";
+
+                lblPingStatus.ForeColor =
+                    Color.Red;
+            }
+            catch (Exception ex)
+            {
+                output.AppendLine(
+                    "خطای غیرمنتظره:");
+
+                output.AppendLine(
+                    ex.Message);
+
+                lblPingStatus.Text =
+                    "خطای غیرمنتظره";
+
+                lblPingStatus.ForeColor =
+                    Color.Red;
+            }
+            finally
+            {
+                output.AppendLine();
+                output.Append(OutputSeparator);
+                output.AppendLine();
+
+                rtbOutput.AppendText(
+                    output.ToString());
+
+                rtbOutput.SelectionStart =
+                    rtbOutput.TextLength;
+
+                rtbOutput.ScrollToCaret();
+
+                btnPing.Enabled = true;
+                txtPingTarget.Enabled = true;
+            }
+        }
     }
 }
