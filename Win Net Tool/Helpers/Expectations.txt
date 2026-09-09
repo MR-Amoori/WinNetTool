@@ -1,0 +1,30 @@
+﻿بررسی دسترسی Administrator
+پاک‌سازی DNS Cache
+آزادسازی آدرس IP
+دریافت مجدد آدرس IP
+بازنشانی Winsock
+بازنشانی TCP/IP
+بازنشانی کامل تنظیمات شبکه
+نمایش اطلاعات کامل شبکه
+نمایش آدرس IP محلی
+نمایش آدرس MAC
+نمایش Gateway
+نمایش DNS Serverها
+بررسی وضعیت اتصال اینترنت
+ابزار Ping
+ابزار Traceroute
+ابزار DNS Lookup
+بررسی پورت
+نمایش کارت‌های شبکه
+فعال‌سازی کارت شبکه
+غیرفعال‌سازی کارت شبکه
+بازکردن Network Connections
+نمایش وضعیت Proxy
+فعال‌سازی Proxy
+غیرفعال‌سازی Proxy
+بازکردن تنظیمات Proxy ویندوز
+بازکردن Internet Properties
+بازکردن Windows Firewall
+بازکردن Device Manager
+بازکردن Services
+بازکردن Command Prompt

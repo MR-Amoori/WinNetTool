@@ -62,6 +62,7 @@
     <Compile Include="Helpers\CommandExecutionResult.cs" />
     <Compile Include="Helpers\CommandExecutor.cs" />
     <Compile Include="Helpers\CommandShell.cs" />
+    <Compile Include="Helpers\NetworkActions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
@@ -92,6 +93,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Helpers\Expectations.txt" />
     <Content Include="Resources\network-fixer.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
