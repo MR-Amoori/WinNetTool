@@ -59,6 +59,9 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Helpers\AdministratorHelper.cs" />
+    <Compile Include="Helpers\CommandExecutionResult.cs" />
+    <Compile Include="Helpers\CommandExecutor.cs" />
+    <Compile Include="Helpers\CommandShell.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
