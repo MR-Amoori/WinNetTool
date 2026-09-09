@@ -42,6 +42,11 @@
             this.btnPing = new System.Windows.Forms.Button();
             this.lblPingStatus = new System.Windows.Forms.Label();
             this.btnRemoveSystemProxy = new System.Windows.Forms.Button();
+            this.txtPrimaryDns = new System.Windows.Forms.TextBox();
+            this.txtSecondaryDns = new System.Windows.Forms.TextBox();
+            this.btnApplyCustomDns = new System.Windows.Forms.Button();
+            this.cmbDnsServers = new System.Windows.Forms.ComboBox();
+            this.btnApplySelectedDns = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnIpConfig
@@ -166,7 +171,7 @@
             // 
             this.lblPingStatus.AutoSize = true;
             this.lblPingStatus.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblPingStatus.Location = new System.Drawing.Point(12, 84);
+            this.lblPingStatus.Location = new System.Drawing.Point(12, 90);
             this.lblPingStatus.Name = "lblPingStatus";
             this.lblPingStatus.Size = new System.Drawing.Size(40, 14);
             this.lblPingStatus.TabIndex = 12;
@@ -183,11 +188,62 @@
             this.btnRemoveSystemProxy.UseVisualStyleBackColor = true;
             this.btnRemoveSystemProxy.Click += new System.EventHandler(this.btnRemoveSystemProxy_Click);
             // 
+            // txtPrimaryDns
+            // 
+            this.txtPrimaryDns.Location = new System.Drawing.Point(12, 112);
+            this.txtPrimaryDns.Name = "txtPrimaryDns";
+            this.txtPrimaryDns.Size = new System.Drawing.Size(173, 26);
+            this.txtPrimaryDns.TabIndex = 13;
+            this.txtPrimaryDns.Text = "DNS اولیه";
+            this.txtPrimaryDns.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // txtSecondaryDns
+            // 
+            this.txtSecondaryDns.Location = new System.Drawing.Point(191, 112);
+            this.txtSecondaryDns.Name = "txtSecondaryDns";
+            this.txtSecondaryDns.Size = new System.Drawing.Size(176, 26);
+            this.txtSecondaryDns.TabIndex = 13;
+            this.txtSecondaryDns.Text = "DNS ثانویه";
+            this.txtSecondaryDns.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // btnApplyCustomDns
+            // 
+            this.btnApplyCustomDns.Location = new System.Drawing.Point(373, 104);
+            this.btnApplyCustomDns.Name = "btnApplyCustomDns";
+            this.btnApplyCustomDns.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.btnApplyCustomDns.Size = new System.Drawing.Size(176, 40);
+            this.btnApplyCustomDns.TabIndex = 3;
+            this.btnApplyCustomDns.Text = "اعمال DNS واردشده";
+            this.btnApplyCustomDns.UseVisualStyleBackColor = true;
+            this.btnApplyCustomDns.Click += new System.EventHandler(this.btnApplyCustomDns_Click);
+            // 
+            // cmbDnsServers
+            // 
+            this.cmbDnsServers.FormattingEnabled = true;
+            this.cmbDnsServers.Location = new System.Drawing.Point(12, 158);
+            this.cmbDnsServers.Name = "cmbDnsServers";
+            this.cmbDnsServers.Size = new System.Drawing.Size(537, 26);
+            this.cmbDnsServers.TabIndex = 14;
+            // 
+            // btnApplySelectedDns
+            // 
+            this.btnApplySelectedDns.Location = new System.Drawing.Point(555, 150);
+            this.btnApplySelectedDns.Name = "btnApplySelectedDns";
+            this.btnApplySelectedDns.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.btnApplySelectedDns.Size = new System.Drawing.Size(176, 40);
+            this.btnApplySelectedDns.TabIndex = 3;
+            this.btnApplySelectedDns.Text = "اعمال DNS انتخاب‌شده";
+            this.btnApplySelectedDns.UseVisualStyleBackColor = true;
+            this.btnApplySelectedDns.Click += new System.EventHandler(this.btnApplySelectedDns_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(733, 654);
+            this.Controls.Add(this.cmbDnsServers);
+            this.Controls.Add(this.txtSecondaryDns);
+            this.Controls.Add(this.txtPrimaryDns);
             this.Controls.Add(this.lblPingStatus);
             this.Controls.Add(this.txtPingTarget);
             this.Controls.Add(this.btnClear);
@@ -195,6 +251,8 @@
             this.Controls.Add(this.lblStatus);
             this.Controls.Add(this.btnPing);
             this.Controls.Add(this.btnSetAllAdaptersDhcp);
+            this.Controls.Add(this.btnApplySelectedDns);
+            this.Controls.Add(this.btnApplyCustomDns);
             this.Controls.Add(this.btnRemoveSystemProxy);
             this.Controls.Add(this.btnDisableLanSettings);
             this.Controls.Add(this.btnInternetOptions);
@@ -232,6 +290,11 @@
         private System.Windows.Forms.Button btnPing;
         private System.Windows.Forms.Label lblPingStatus;
         private System.Windows.Forms.Button btnRemoveSystemProxy;
+        private System.Windows.Forms.TextBox txtPrimaryDns;
+        private System.Windows.Forms.TextBox txtSecondaryDns;
+        private System.Windows.Forms.Button btnApplyCustomDns;
+        private System.Windows.Forms.ComboBox cmbDnsServers;
+        private System.Windows.Forms.Button btnApplySelectedDns;
     }
 }
 

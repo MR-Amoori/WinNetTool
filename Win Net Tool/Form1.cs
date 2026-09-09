@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -77,6 +78,11 @@ namespace Win_Net_Tool
         {
             try
             {
+
+                LoadDnsServers();
+
+                InitializeDnsComboBox();
+
                 CommandExecutionResult result =
                     await CommandExecutor.ExecuteAsync(
                         "whoami",
@@ -1332,5 +1338,649 @@ namespace Win_Net_Tool
         }
 
         #endregion
+
+
+        #region DNS Server List
+
+        private List<NetworkActions.DnsServerInfo>
+            dnsServers =
+                new List<NetworkActions.DnsServerInfo>();
+
+        private void LoadDnsServers()
+        {
+            dnsServers =
+                new List<NetworkActions.DnsServerInfo>
+                {
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "شکن",
+                PrimaryAddress = "178.22.122.100",
+                SecondaryAddress = "185.51.200.2",
+                Purpose = "رفع تحریم، دانلود",
+                Stability = "بالا",
+                Source = "shecan.ir"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "شلتر",
+                PrimaryAddress = "94.103.125.157",
+                SecondaryAddress = "94.103.125.158",
+                Purpose = "گیمینگ، کاهش پینگ",
+                Stability = "متوسط تا بالا",
+                Source = "sheltertm.com"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "بشکن",
+                PrimaryAddress = "181.41.194.177",
+                SecondaryAddress = "181.41.194.186",
+                Purpose = "رفع تحریم عمومی",
+                Stability = "متوسط",
+                Source = "beshkanapp.ir"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "الکترو",
+                PrimaryAddress = "78.157.42.100",
+                SecondaryAddress = "78.157.42.101",
+                Purpose = "بازی آنلاین، سرعت",
+                Stability = "بالا",
+                Source = "electrotm.org"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "رادار",
+                PrimaryAddress = "10.202.10.10",
+                SecondaryAddress = "10.202.10.11",
+                Purpose = "گیمینگ، دانلود",
+                Stability = "بالا",
+                Source = "radar.game"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "403",
+                PrimaryAddress = "10.202.10.202",
+                SecondaryAddress = "10.202.10.102",
+                Purpose = "رسمی دولتی، رفع تحریم",
+                Stability = "متوسط",
+                Source = "403.online"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "بگذر",
+                PrimaryAddress = "185.55.226.26",
+                SecondaryAddress = "185.55.225.25",
+                Purpose = "دسترسی بدون محدودیت",
+                Stability = "بالا",
+                Source = "begzar.ir"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "پیشگامان",
+                PrimaryAddress = "5.202.100.100",
+                SecondaryAddress = "5.202.100.101",
+                Purpose = "دسترسی سریع داخلی",
+                Stability = "متوسط",
+                Source = "ISPs in Iran"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "شاتل",
+                PrimaryAddress = "85.15.1.14",
+                SecondaryAddress = "85.15.1.15",
+                Purpose = "استفاده داخلی ISP",
+                Stability = "متوسط",
+                Source = "ISPs in Iran"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "آسیاتک",
+                PrimaryAddress = "194.36.174.161",
+                SecondaryAddress = "178.22.122.100",
+                Purpose = "دسترسی سریع داخلی",
+                Stability = "بالا",
+                Source = "ISPs in Iran"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "مخابرات",
+                PrimaryAddress = "217.218.155.155",
+                SecondaryAddress = "217.218.127.127",
+                Purpose = "استفاده داخلی ISP",
+                Stability = "متوسط",
+                Source = "ISPs in Iran"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "پارس آنلاین",
+                PrimaryAddress = "91.99.101.12",
+                SecondaryAddress = "",
+                Purpose = "استفاده داخلی ISP",
+                Stability = "متوسط",
+                Source = "ISPs in Iran"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "ایرانسل",
+                PrimaryAddress = "74.82.42.42",
+                SecondaryAddress = "",
+                Purpose = "استفاده داخلی ISP",
+                Stability = "متوسط",
+                Source = "Irancell"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "داده گستر عصر نوین",
+                PrimaryAddress = "46.224.1.42",
+                SecondaryAddress = "",
+                Purpose = "استفاده داخلی ISP",
+                Stability = "متوسط",
+                Source = "ISPs in Iran"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "دانشگاه تهران علوم پزشکی",
+                PrimaryAddress = "194.225.62.80",
+                SecondaryAddress = "",
+                Purpose = "استفاده داخلی ISP",
+                Stability = "متوسط",
+                Source = "دانشگاه تهران"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "لگ اسلیر",
+                PrimaryAddress = "5.160.132.221",
+                SecondaryAddress = "5.160.132.222",
+                Purpose = "گیمینگ، کاهش لگ",
+                Stability = "متوسط",
+                Source = "گزارش‌های کاربران"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "لگ زیرو",
+                PrimaryAddress = "95.38.132.153",
+                SecondaryAddress = "95.38.132.152",
+                Purpose = "گیمینگ، کاهش لگ",
+                Stability = "متوسط",
+                Source = "گزارش‌های کاربران"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "dns.malw.link",
+                PrimaryAddress = "84.21.189.133",
+                SecondaryAddress = "64.188.98.242",
+                Purpose = "جلوگیری از بدافزار",
+                Stability = "بالا",
+                Source = "گزارش‌های کاربران"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "هاست ایران",
+                PrimaryAddress = "172.29.0.100",
+                SecondaryAddress = "172.29.2.100",
+                Purpose = "دسترسی سریع داخلی",
+                Stability = "متوسط",
+                Source = "گزارش‌های کاربران"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "رسانه پرداز سپاهان",
+                PrimaryAddress = "185.186.242.161",
+                SecondaryAddress = "",
+                Purpose = "دسترسی داخلی سریع",
+                Stability = "متوسط",
+                Source = "گزارش‌های کاربران"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "US - Google Public DNS",
+                PrimaryAddress = "8.8.8.8",
+                SecondaryAddress = "8.8.4.4",
+                Purpose = "دسترسی جهانی سریع",
+                Stability = "بالا",
+                Source = "Google DNS"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "RU - Yandex",
+                PrimaryAddress = "77.88.8.1",
+                SecondaryAddress = "77.88.8.8",
+                Purpose = "دسترسی امن جهانی",
+                Stability = "متوسط",
+                Source = "Yandex DNS"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "AU - Cloudflare",
+                PrimaryAddress = "1.1.1.1",
+                SecondaryAddress = "1.0.0.1",
+                Purpose = "امنیت و سرعت بالا",
+                Stability = "بالا",
+                Source = "Cloudflare"
+            },
+
+            new NetworkActions.DnsServerInfo
+            {
+                Name = "US - Dyn",
+                PrimaryAddress = "216.146.35.35",
+                SecondaryAddress = "216.146.36.36",
+                Purpose = "دسترسی سریع جهانی",
+                Stability = "متوسط",
+                Source = "Dyn DNS"
+            }
+                };
+        }
+
+    private void InitializeDnsComboBox()
+        {
+            cmbDnsServers.Items.Clear();
+
+            foreach (
+                NetworkActions.DnsServerInfo dns
+                in dnsServers)
+            {
+                cmbDnsServers.Items.Add(
+                    dns);
+            }
+
+            if (cmbDnsServers.Items.Count > 0)
+            {
+                cmbDnsServers.SelectedIndex =
+                    0;
+            }
+        }
+
+        #endregion
+
+
+        #region DNS Validation
+
+        private bool IsValidIPv4Address(
+            string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            value =
+                value.Trim();
+
+            if (!IPAddress.TryParse(
+                value,
+                out IPAddress address))
+            {
+                return false;
+            }
+
+            return address.AddressFamily ==
+                   System.Net.Sockets.AddressFamily.InterNetwork;
+        }
+
+        #endregion
+
+
+        #region DNS Logging
+
+        private void AppendDnsApplyResult(
+            List<NetworkActions.AdapterDnsResult> results,
+            string primaryDns,
+            string secondaryDns)
+        {
+            StringBuilder message =
+                new StringBuilder();
+
+            message.AppendLine(
+                "نتیجه اعمال DNS روی تمام آداپتورها:");
+
+            message.AppendLine(
+                "DNS اولیه: " +
+                primaryDns);
+
+            message.AppendLine(
+                "DNS ثانویه: " +
+                (string.IsNullOrWhiteSpace(secondaryDns)
+                    ? "تنظیم نشده"
+                    : secondaryDns));
+
+            message.AppendLine();
+
+            bool allSucceeded =
+                true;
+
+            foreach (
+                NetworkActions.AdapterDnsResult result
+                in results)
+            {
+                message.AppendLine(
+                    "آداپتور: " +
+                    result.AdapterName);
+
+                message.AppendLine(
+                    "وضعیت DNS اولیه: " +
+                    GetCommandStatus(
+                        result.PrimaryResult));
+
+                if (result.SecondaryResult != null)
+                {
+                    message.AppendLine(
+                        "وضعیت DNS ثانویه: " +
+                        GetCommandStatus(
+                            result.SecondaryResult));
+                }
+                else
+                {
+                    message.AppendLine(
+                        "وضعیت DNS ثانویه: تنظیم نشد.");
+                }
+
+                if (!result.IsSuccess)
+                {
+                    allSucceeded =
+                        false;
+                }
+
+                message.AppendLine();
+            }
+
+            message.AppendLine(
+                allSucceeded
+                    ? "نتیجه نهایی: DNS روی تمام آداپتورها با موفقیت اعمال شد."
+                    : "نتیجه نهایی: برخی آداپتورها با خطا یا هشدار مواجه شدند.");
+
+            message.Append(
+                OutputSeparator);
+
+            rtbOutput.AppendText(
+                message.ToString());
+
+            rtbOutput.SelectionStart =
+                rtbOutput.TextLength;
+
+            rtbOutput.ScrollToCaret();
+
+            lblStatus.Text =
+                allSucceeded
+                    ? "DNS روی تمام آداپتورها اعمال شد."
+                    : "اعمال DNS کامل انجام نشد.";
+
+            lblStatus.ForeColor =
+                allSucceeded
+                    ? Color.Green
+                    : Color.DarkOrange;
+        }
+
+        private string GetCommandStatus(
+            CommandExecutionResult result)
+        {
+            if (result == null)
+            {
+                return "اجرا نشد";
+            }
+
+            if (result.IsSuccess)
+            {
+                return "موفق";
+            }
+
+            if (!string.IsNullOrWhiteSpace(
+                result.Error))
+            {
+                return "خطا: " +
+                       result.Error.Trim();
+            }
+
+            return "ناموفق";
+        }
+
+
+        #endregion
+
+
+        #region Apply Custom DNS
+
+        private async void btnApplyCustomDns_Click(
+            object sender,
+            EventArgs e)
+        {
+            string primaryDns =
+                txtPrimaryDns.Text.Trim();
+
+            string secondaryDns =
+                txtSecondaryDns.Text.Trim();
+
+            if (!IsValidIPv4Address(primaryDns))
+            {
+                MessageBox.Show(
+                    "DNS اولیه معتبر نیست.\r\n\r\n" +
+                    "نمونه صحیح:\r\n" +
+                    "8.8.8.8",
+                    "DNS اولیه نامعتبر",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                txtPrimaryDns.Focus();
+                txtPrimaryDns.SelectAll();
+
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(
+                secondaryDns) &&
+                !IsValidIPv4Address(secondaryDns))
+            {
+                MessageBox.Show(
+                    "DNS ثانویه معتبر نیست.\r\n\r\n" +
+                    "نمونه صحیح:\r\n" +
+                    "8.8.4.4",
+                    "DNS ثانویه نامعتبر",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                txtSecondaryDns.Focus();
+                txtSecondaryDns.SelectAll();
+
+                return;
+            }
+
+            DialogResult confirmation =
+                MessageBox.Show(
+                    "DNS زیر روی تمام آداپتورهای IPv4 اعمال می‌شود:\r\n\r\n" +
+                    "DNS اولیه: " +
+                    primaryDns +
+                    "\r\n" +
+                    "DNS ثانویه: " +
+                    (string.IsNullOrWhiteSpace(secondaryDns)
+                        ? "تنظیم نشده"
+                        : secondaryDns) +
+                    "\r\n\r\n" +
+                    "آیا ادامه می‌دهید؟",
+                    "تأیید اعمال DNS",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+            if (confirmation != DialogResult.Yes)
+            {
+                return;
+            }
+
+            btnApplyCustomDns.Enabled =
+                false;
+
+            btnApplySelectedDns.Enabled =
+                false;
+
+            lblStatus.Text =
+                "در حال اعمال DNS روی تمام آداپتورها...";
+
+            lblStatus.ForeColor =
+                Color.Black;
+
+            try
+            {
+                AppendLog(
+                    "شروع اعمال DNS دستی روی تمام آداپتورها.");
+
+                List<NetworkActions.AdapterDnsResult> results =
+                    await NetworkActions.SetDnsForAllAdaptersAsync(
+                        primaryDns,
+                        secondaryDns);
+
+                AppendDnsApplyResult(
+                    results,
+                    primaryDns,
+                    secondaryDns);
+
+                AppendLog(
+                    "عملیات اعمال DNS دستی پایان یافت.");
+            }
+            catch (Exception ex)
+            {
+                AppendExceptionResult(
+                    "اعمال DNS دستی",
+                    ex);
+            }
+            finally
+            {
+                btnApplyCustomDns.Enabled =
+                    true;
+
+                btnApplySelectedDns.Enabled =
+                    true;
+            }
+        }
+
+
+        #endregion
+
+
+        #region Apply Selected DNS
+
+        private async void btnApplySelectedDns_Click(
+            object sender,
+            EventArgs e)
+        {
+            if (cmbDnsServers.SelectedItem == null)
+            {
+                MessageBox.Show(
+                    "لطفاً ابتدا یک DNS Server را انتخاب کنید.",
+                    "انتخاب DNS",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                return;
+            }
+
+            NetworkActions.DnsServerInfo selectedDns =
+                cmbDnsServers.SelectedItem
+                as NetworkActions.DnsServerInfo;
+
+            if (selectedDns == null)
+            {
+                MessageBox.Show(
+                    "اطلاعات DNS انتخاب‌شده معتبر نیست.",
+                    "خطای DNS",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+
+                return;
+            }
+
+            DialogResult confirmation =
+                MessageBox.Show(
+                    "DNS انتخاب‌شده روی تمام آداپتورهای IPv4 اعمال می‌شود:\r\n\r\n" +
+                    selectedDns.Name +
+                    "\r\n" +
+                    "DNS اولیه: " +
+                    selectedDns.PrimaryAddress +
+                    "\r\n" +
+                    "DNS ثانویه: " +
+                    (string.IsNullOrWhiteSpace(
+                        selectedDns.SecondaryAddress)
+                        ? "تنظیم نشده"
+                        : selectedDns.SecondaryAddress) +
+                    "\r\n\r\n" +
+                    "آیا ادامه می‌دهید؟",
+                    "تأیید اعمال DNS",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+            if (confirmation != DialogResult.Yes)
+            {
+                return;
+            }
+
+            btnApplyCustomDns.Enabled =
+                false;
+
+            btnApplySelectedDns.Enabled =
+                false;
+
+            lblStatus.Text =
+                "در حال اعمال DNS انتخاب‌شده...";
+
+            lblStatus.ForeColor =
+                Color.Black;
+
+            try
+            {
+                AppendLog(
+                    "شروع اعمال DNS انتخاب‌شده: " +
+                    selectedDns.Name);
+
+                List<NetworkActions.AdapterDnsResult> results =
+                    await NetworkActions.SetDnsForAllAdaptersAsync(
+                        selectedDns.PrimaryAddress,
+                        selectedDns.SecondaryAddress);
+
+                AppendDnsApplyResult(
+                    results,
+                    selectedDns.PrimaryAddress,
+                    selectedDns.SecondaryAddress);
+
+                AppendLog(
+                    "DNS انتخاب‌شده روی آداپتورها اعمال شد.");
+            }
+            catch (Exception ex)
+            {
+                AppendExceptionResult(
+                    "اعمال DNS انتخاب‌شده",
+                    ex);
+            }
+            finally
+            {
+                btnApplyCustomDns.Enabled =
+                    true;
+
+                btnApplySelectedDns.Enabled =
+                    true;
+            }
+        }
+
+        #endregion
+
+
     }
 }
