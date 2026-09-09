@@ -12,6 +12,7 @@ using static Win_Net_Tool.Helpers.NetworkActions;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Text.RegularExpressions;
 
 namespace Win_Net_Tool
 {
@@ -721,47 +722,170 @@ namespace Win_Net_Tool
             }
         }
 
-        private bool IsValidIPv4(
-    string value,
-    out IPAddress ipAddress)
+        private bool IsValidIPv4Strict(
+            string value)
         {
-            ipAddress = null;
-
             if (string.IsNullOrWhiteSpace(value))
             {
                 return false;
             }
 
-            if (!IPAddress.TryParse(
-                value.Trim(),
-                out IPAddress parsedAddress))
+            string[] parts =
+                value.Split('.');
+
+            // IPv4 باید دقیقاً چهار بخش داشته باشد
+            if (parts.Length != 4)
             {
                 return false;
             }
 
-            if (parsedAddress.AddressFamily !=
-                AddressFamily.InterNetwork)
+            foreach (string part in parts)
             {
-                return false;
-            }
+                if (string.IsNullOrWhiteSpace(part))
+                {
+                    return false;
+                }
 
-            ipAddress = parsedAddress;
+                // فقط عدد قبول می‌شود
+                if (!int.TryParse(
+                    part,
+                    out int number))
+                {
+                    return false;
+                }
+
+                // هر بخش باید بین 0 تا 255 باشد
+                if (number < 0 || number > 255)
+                {
+                    return false;
+                }
+            }
 
             return true;
         }
 
-        private async void btnPing_Click(object sender, EventArgs e)
+        private bool IsValidDomain(
+    string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            // دامنه باید طول منطقی داشته باشد
+            if (value.Length > 253)
+            {
+                return false;
+            }
+
+            // دامنه باید حداقل یک نقطه داشته باشد.
+            // بنابراین abc پذیرفته نمی‌شود.
+            string[] labels =
+                value.Split('.');
+
+            if (labels.Length < 2)
+            {
+                return false;
+            }
+
+            foreach (string label in labels)
+            {
+                if (string.IsNullOrWhiteSpace(label))
+                {
+                    return false;
+                }
+
+                if (label.Length > 63)
+                {
+                    return false;
+                }
+
+                // هر بخش باید با حرف یا عدد شروع و تمام شود
+                if (!char.IsLetterOrDigit(label[0]) ||
+                    !char.IsLetterOrDigit(
+                        label[label.Length - 1]))
+                {
+                    return false;
+                }
+
+                // فقط حروف، اعداد و خط تیره مجاز هستند
+                foreach (char character in label)
+                {
+                    if (!char.IsLetterOrDigit(character) &&
+                        character != '-')
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            string topLevelDomain =
+                labels[labels.Length - 1];
+
+            // پسوند دامنه حداقل دو حرف داشته باشد
+            // مانند com، ir، org
+            if (topLevelDomain.Length < 2)
+            {
+                return false;
+            }
+
+            foreach (char character in topLevelDomain)
+            {
+                if (!char.IsLetter(character) &&
+                    character != '-')
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private bool IsValidPingTarget(
+    string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            value = value.Trim();
+
+            // جلوگیری از پذیرش IPv6 مانند ::
+            if (value.Contains(":"))
+            {
+                return false;
+            }
+
+            // اگر IPv4 معتبر باشد، قبول شود
+            if (IsValidIPv4Strict(value))
+            {
+                return true;
+            }
+
+            // در غیر این صورت، به‌عنوان دامنه بررسی شود
+            return IsValidDomain(value);
+        }
+
+
+        private async void btnPing_Click(
+    object sender,
+    EventArgs e)
         {
             string target =
-        txtPingTarget.Text.Trim();
+                txtPingTarget.Text.Trim();
 
-            if (!IsValidIPv4(
-                target,
-                out IPAddress ipAddress))
+            if (!IsValidPingTarget(target))
             {
                 MessageBox.Show(
-                    "لطفاً یک آدرس IPv4 معتبر مانند 8.8.8.8 وارد کنید.",
-                    "آدرس نامعتبر",
+                    "لطفاً یک IPv4 یا دامنه معتبر وارد کنید.\r\n\r\n" +
+                    "نمونه‌های معتبر:\r\n" +
+                    "8.8.8.8\r\n" +
+                    "192.168.1.1\r\n" +
+                    "127.0.0.1\r\n" +
+                    "google.com\r\n" +
+                    "mramoori.ir",
+                    "مقصد نامعتبر",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
 
@@ -775,7 +899,7 @@ namespace Win_Net_Tool
             txtPingTarget.Enabled = false;
 
             lblPingStatus.Text =
-                "در حال ارسال Ping به " + ipAddress + "...";
+                "در حال ارسال Ping به " + target + "...";
 
             lblPingStatus.ForeColor =
                 Color.Black;
@@ -784,7 +908,7 @@ namespace Win_Net_Tool
                 new StringBuilder();
 
             output.AppendLine(
-                "دستور اجراشده: ping " + ipAddress);
+                "دستور اجراشده: ping " + target);
 
             output.AppendLine();
 
@@ -794,7 +918,7 @@ namespace Win_Net_Tool
                 {
                     PingReply reply =
                         await ping.SendPingAsync(
-                            ipAddress,
+                            target,
                             4000);
 
                     if (reply.Status ==
@@ -804,8 +928,15 @@ namespace Win_Net_Tool
                             "پاسخ دریافت شد.");
 
                         output.AppendLine(
-                            "آدرس مقصد: " +
-                            reply.Address);
+                            "مقصد واردشده: " +
+                            target);
+
+                        if (reply.Address != null)
+                        {
+                            output.AppendLine(
+                                "آدرس Resolve شده: " +
+                                reply.Address);
+                        }
 
                         output.AppendLine(
                             "زمان پاسخ: " +
@@ -813,7 +944,7 @@ namespace Win_Net_Tool
                             " ms");
 
                         output.AppendLine(
-                            "وضعیت: اتصال شبکه برقرار است.");
+                            "وضعیت: اتصال مقصد برقرار است.");
 
                         lblPingStatus.Text =
                             "اتصال برقرار است - " +
@@ -829,11 +960,15 @@ namespace Win_Net_Tool
                             "پاسخی از مقصد دریافت نشد.");
 
                         output.AppendLine(
+                            "مقصد: " +
+                            target);
+
+                        output.AppendLine(
                             "وضعیت Ping: " +
                             reply.Status);
 
                         output.AppendLine(
-                            "ممکن است مقصد، فایروال یا شبکه پاسخ ICMP را مسدود کرده باشد.");
+                            "ممکن است مقصد یا فایروال پاسخ ICMP را مسدود کرده باشد.");
 
                         lblPingStatus.Text =
                             "پاسخی دریافت نشد: " +
@@ -854,6 +989,20 @@ namespace Win_Net_Tool
 
                 lblPingStatus.Text =
                     "خطا در اجرای Ping";
+
+                lblPingStatus.ForeColor =
+                    Color.Red;
+            }
+            catch (SocketException ex)
+            {
+                output.AppendLine(
+                    "خطا در Resolve کردن دامنه:");
+
+                output.AppendLine(
+                    ex.Message);
+
+                lblPingStatus.Text =
+                    "دامنه پیدا نشد یا DNS مشکل دارد.";
 
                 lblPingStatus.ForeColor =
                     Color.Red;
@@ -890,5 +1039,8 @@ namespace Win_Net_Tool
                 txtPingTarget.Enabled = true;
             }
         }
+
+
+
     }
 }
