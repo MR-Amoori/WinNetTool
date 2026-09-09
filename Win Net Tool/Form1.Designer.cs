@@ -47,6 +47,7 @@
             this.btnApplyCustomDns = new System.Windows.Forms.Button();
             this.cmbDnsServers = new System.Windows.Forms.ComboBox();
             this.btnApplySelectedDns = new System.Windows.Forms.Button();
+            this.btnPingAllDns = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnIpConfig
@@ -222,7 +223,7 @@
             this.cmbDnsServers.FormattingEnabled = true;
             this.cmbDnsServers.Location = new System.Drawing.Point(12, 158);
             this.cmbDnsServers.Name = "cmbDnsServers";
-            this.cmbDnsServers.Size = new System.Drawing.Size(537, 26);
+            this.cmbDnsServers.Size = new System.Drawing.Size(445, 26);
             this.cmbDnsServers.TabIndex = 14;
             // 
             // btnApplySelectedDns
@@ -235,6 +236,17 @@
             this.btnApplySelectedDns.Text = "اعمال DNS انتخاب‌شده";
             this.btnApplySelectedDns.UseVisualStyleBackColor = true;
             this.btnApplySelectedDns.Click += new System.EventHandler(this.btnApplySelectedDns_Click);
+            // 
+            // btnPingAllDns
+            // 
+            this.btnPingAllDns.Location = new System.Drawing.Point(463, 150);
+            this.btnPingAllDns.Name = "btnPingAllDns";
+            this.btnPingAllDns.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.btnPingAllDns.Size = new System.Drawing.Size(86, 40);
+            this.btnPingAllDns.TabIndex = 3;
+            this.btnPingAllDns.Text = "تست";
+            this.btnPingAllDns.UseVisualStyleBackColor = true;
+            this.btnPingAllDns.Click += new System.EventHandler(this.btnPingAllDns_Click);
             // 
             // Form1
             // 
@@ -251,6 +263,7 @@
             this.Controls.Add(this.lblStatus);
             this.Controls.Add(this.btnPing);
             this.Controls.Add(this.btnSetAllAdaptersDhcp);
+            this.Controls.Add(this.btnPingAllDns);
             this.Controls.Add(this.btnApplySelectedDns);
             this.Controls.Add(this.btnApplyCustomDns);
             this.Controls.Add(this.btnRemoveSystemProxy);
@@ -295,6 +308,7 @@
         private System.Windows.Forms.Button btnApplyCustomDns;
         private System.Windows.Forms.ComboBox cmbDnsServers;
         private System.Windows.Forms.Button btnApplySelectedDns;
+        private System.Windows.Forms.Button btnPingAllDns;
     }
 }
 

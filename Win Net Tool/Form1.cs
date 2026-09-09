@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -11,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Win_Net_Tool.Helpers;
+using static Win_Net_Tool.Helpers.NetworkActions;
 
 namespace Win_Net_Tool
 {
@@ -279,6 +281,15 @@ namespace Win_Net_Tool
                 enabled;
 
             btnRemoveSystemProxy.Enabled =
+                enabled;
+
+            btnApplyCustomDns.Enabled =
+                enabled;
+
+            btnApplySelectedDns.Enabled =
+                enabled;
+
+            btnPingAllDns.Enabled =
                 enabled;
         }
 
@@ -1593,8 +1604,12 @@ namespace Win_Net_Tool
                 };
         }
 
-    private void InitializeDnsComboBox()
+        #region DNS ComboBox Initialization
+
+        private void InitializeDnsComboBox()
         {
+            ConfigureDnsComboBoxDrawing();
+
             cmbDnsServers.Items.Clear();
 
             foreach (
@@ -1611,6 +1626,202 @@ namespace Win_Net_Tool
                     0;
             }
         }
+
+        #endregion
+
+        #endregion
+
+
+        #region Ping All DNS Servers
+
+        private void AppendDnsPingLog(
+            List<NetworkActions.DnsServerInfo> results)
+        {
+            StringBuilder log =
+                new StringBuilder();
+
+            log.AppendLine(
+                "نتیجه Ping و مرتب‌سازی DNS Serverها:");
+
+            log.AppendLine();
+
+            int index =
+                1;
+
+            foreach (
+                NetworkActions.DnsServerInfo dns
+                in results)
+            {
+                log.AppendLine(
+                    index +
+                    ". " +
+                    dns.ToString());
+
+                log.AppendLine(
+                    "   امتیاز مرتب‌سازی: " +
+                    GetDnsSortPingText(dns));
+
+                index++;
+            }
+
+            log.Append(
+                OutputSeparator);
+
+            rtbOutput.AppendText(
+                log.ToString());
+
+            rtbOutput.SelectionStart =
+                rtbOutput.TextLength;
+
+            rtbOutput.ScrollToCaret();
+        }
+
+        private string GetDnsSortPingText(
+            NetworkActions.DnsServerInfo dns)
+        {
+            if (double.IsPositiveInfinity(
+                dns.SortPingMilliseconds) ||
+                dns.SortPingMilliseconds ==
+                double.MaxValue)
+            {
+                return "بدون پاسخ";
+            }
+
+            return dns.SortPingMilliseconds
+                .ToString("0.00");
+        }
+
+        #region Ping All DNS Servers
+
+        private async void btnPingAllDns_Click(
+            object sender,
+            EventArgs e)
+        {
+            if (dnsServers == null ||
+                dnsServers.Count == 0)
+            {
+                MessageBox.Show(
+                    "هیچ DNS Serverای برای تست وجود ندارد.",
+                    "لیست DNS خالی است",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                return;
+            }
+
+            btnPingAllDns.Enabled =
+                false;
+
+            btnApplyCustomDns.Enabled =
+                false;
+
+            btnApplySelectedDns.Enabled =
+                false;
+
+            cmbDnsServers.Enabled =
+                false;
+
+            lblStatus.Text =
+                "در حال تست Ping تمام DNSها...";
+
+            lblStatus.ForeColor =
+                Color.Black;
+
+            try
+            {
+                AppendLog(
+                    "شروع تست Ping تمام DNS Serverها.");
+
+                /*
+                 * برای هر DNS، Ping اولیه و ثانویه ارسال می‌شود.
+                 * سپس نتیجه بر اساس کمترین میانگین Ping مرتب می‌شود.
+                 */
+                List<NetworkActions.DnsServerInfo>
+                    sortedDnsServers =
+                    await NetworkActions.PingAllDnsServersAsync(
+                        dnsServers,
+                        3000);
+
+                /*
+                 * لیست اصلی نیز با لیست مرتب‌شده جایگزین می‌شود
+                 * تا اعمال DNS انتخاب‌شده از ترتیب جدید استفاده کند.
+                 */
+                dnsServers =
+                    sortedDnsServers;
+
+                /*
+                 * بازسازی کامل ComboBox باعث می‌شود:
+                 *
+                 * - Pingهای جدید نمایش داده شوند.
+                 * - ترتیب آیتم‌ها تغییر کند.
+                 * - رنگ‌ها براساس رتبه جدید محاسبه شوند.
+                 */
+                cmbDnsServers.BeginUpdate();
+
+                try
+                {
+                    cmbDnsServers.Items.Clear();
+
+                    foreach (
+                        NetworkActions.DnsServerInfo dns
+                        in dnsServers)
+                    {
+                        cmbDnsServers.Items.Add(
+                            dns);
+                    }
+
+                    if (cmbDnsServers.Items.Count > 0)
+                    {
+                        cmbDnsServers.SelectedIndex =
+                            0;
+                    }
+                }
+                finally
+                {
+                    cmbDnsServers.EndUpdate();
+                }
+
+                /*
+                 * درخواست بازطراحی ComboBox.
+                 * این خط باعث اعمال رنگ‌بندی براساس ترتیب جدید می‌شود.
+                 */
+                cmbDnsServers.Invalidate();
+
+                AppendDnsPingLog(
+                    sortedDnsServers);
+
+                lblStatus.Text =
+                    "DNSها براساس کمترین Ping مرتب شدند.";
+
+                lblStatus.ForeColor =
+                    Color.Green;
+
+                AppendLog(
+                    "Pingها، رنگ‌ها و ترتیب ComboBox با موفقیت بروزرسانی شدند.");
+            }
+            catch (Exception ex)
+            {
+                AppendExceptionResult(
+                    "تست Ping تمام DNS Serverها",
+                    ex);
+            }
+            finally
+            {
+                btnPingAllDns.Enabled =
+                    true;
+
+                btnApplyCustomDns.Enabled =
+                    true;
+
+                btnApplySelectedDns.Enabled =
+                    true;
+
+                cmbDnsServers.Enabled =
+                    true;
+            }
+        }
+
+        #endregion
 
         #endregion
 
@@ -1977,6 +2188,162 @@ namespace Win_Net_Tool
                 btnApplySelectedDns.Enabled =
                     true;
             }
+        }
+
+        #endregion
+
+
+        #region DNS ComboBox Color Management
+
+        private enum DnsPingColorGroup
+        {
+            Green,
+            Yellow,
+            Red
+        }
+
+        private DnsPingColorGroup
+            GetDnsPingColorGroup(
+                int index)
+        {
+            int itemCount =
+                cmbDnsServers.Items.Count;
+
+            if (itemCount <= 0)
+            {
+                return DnsPingColorGroup.Red;
+            }
+
+            int greenCount =
+                (int)Math.Ceiling(
+                    itemCount / 3.0);
+
+            int yellowEndIndex =
+                (int)Math.Ceiling(
+                    itemCount * 2.0 / 3.0);
+
+            if (index < greenCount)
+            {
+                return DnsPingColorGroup.Green;
+            }
+
+            if (index < yellowEndIndex)
+            {
+                return DnsPingColorGroup.Yellow;
+            }
+
+            return DnsPingColorGroup.Red;
+        }
+
+        #region DNS ComboBox Drawing
+
+        private void cmbDnsServers_DrawItem(
+            object sender,
+            DrawItemEventArgs e)
+        {
+            if (e.Index < 0 ||
+                e.Index >= cmbDnsServers.Items.Count)
+            {
+                return;
+            }
+
+            NetworkActions.DnsServerInfo dnsServer =
+                cmbDnsServers.Items[e.Index]
+                as NetworkActions.DnsServerInfo;
+
+            if (dnsServer == null)
+            {
+                return;
+            }
+
+            DnsPingColorGroup colorGroup =
+                GetDnsPingColorGroup(
+                    e.Index);
+
+            Color backgroundColor;
+
+            switch (colorGroup)
+            {
+                case DnsPingColorGroup.Green:
+
+                    backgroundColor =
+                        Color.FromArgb(
+                            198,
+                            239,
+                            206);
+
+                    break;
+
+                case DnsPingColorGroup.Yellow:
+
+                    backgroundColor =
+                        Color.FromArgb(
+                            255,
+                            235,
+                            156);
+
+                    break;
+
+                default:
+
+                    backgroundColor =
+                        Color.FromArgb(
+                            255,
+                            199,
+                            206);
+
+                    break;
+            }
+
+            /*
+             * هنگام انتخاب آیتم، فقط پس‌زمینه کمی تیره‌تر می‌شود.
+             * رنگ متن در همه حالت‌ها مشکی باقی می‌ماند.
+             */
+            if ((e.State & DrawItemState.Selected) ==
+                DrawItemState.Selected)
+            {
+                backgroundColor =
+                    ControlPaint.Dark(
+                        backgroundColor,
+                        0.08f);
+            }
+
+            using (SolidBrush backgroundBrush =
+                new SolidBrush(backgroundColor))
+            {
+                e.Graphics.FillRectangle(
+                    backgroundBrush,
+                    e.Bounds);
+            }
+
+            using (SolidBrush textBrush =
+                new SolidBrush(Color.Black))
+            {
+                e.Graphics.DrawString(
+                    dnsServer.ToString(),
+                    e.Font,
+                    textBrush,
+                    e.Bounds);
+            }
+
+            e.DrawFocusRectangle();
+        }
+
+        #endregion
+
+        private void ConfigureDnsComboBoxDrawing()
+        {
+            cmbDnsServers.DrawMode =
+                DrawMode.OwnerDrawFixed;
+
+            cmbDnsServers.DropDownStyle =
+                ComboBoxStyle.DropDownList;
+
+            cmbDnsServers.DrawItem -=
+                cmbDnsServers_DrawItem;
+
+            cmbDnsServers.DrawItem +=
+                cmbDnsServers_DrawItem;
         }
 
         #endregion
