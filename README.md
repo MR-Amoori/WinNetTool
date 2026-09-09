@@ -376,7 +376,6 @@ publish/DNSNetworkUtility-win-x64.zip
 محمدرضا عموری:
 
 - دانشجوی مهندسی کامپیوتر
-- دانشجوی مقطع کاردانی مهندسی نرم‌افزار
 - فعال حوزه برنامه‌نویسی و فناوری
 - علاقه‌مند به حوزه دیجیتال، تربیت و روان‌شناسی
 - ورزشکار رشته والیبال
@@ -833,7 +832,6 @@ This project was developed by **Mohammadreza Amoori**.
 Mohammadreza Amoori is:
 
 - A computer engineering student
-- An associate degree software engineering student
 - Active in programming and technology
 - Interested in digital technology, education, and psychology
 - A volleyball athlete
